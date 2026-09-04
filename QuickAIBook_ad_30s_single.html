@@ -145,18 +145,6 @@ button { font-family: inherit; cursor: pointer; border: none; }
 }
 .enter-rise.in { transform: translateY(0); opacity: 1; }
 
-.enter-side {
-  transform: translateX(-14px); opacity: 0;
-  transition: transform .32s cubic-bezier(.34,1.56,.64,1), opacity .32s ease;
-}
-.enter-side.in { transform: translateX(0); opacity: 1; }
-
-.enter-scale-big {
-  transform: scale(0);
-  transition: transform .6s cubic-bezier(.2,.9,.25,1.25);
-}
-.enter-scale-big.in { transform: scale(1); }
-
 /* Kinetic "snap" overshoot, layered on top of any entrance transition
    via a temporary class toggle (see snapPulse() in JS): every entrance
    gets a fast 110%->95%->100% punch instead of one smooth ease. An
@@ -207,7 +195,18 @@ button { font-family: inherit; cursor: pointer; border: none; }
   position: relative; width: 58%; aspect-ratio: 3 / 4;
   background: #fff; border-radius: 12px; padding: 20px 18px;
   box-shadow: 0 26px 55px rgba(0, 0, 0, 0.5);
-  transform: rotate(-3.5deg);
+  opacity: 0; transition: opacity .35s ease;
+}
+.paperCard.in { opacity: 1; }
+/* breatheSlow's own keyframes (translateY/scale, no rotation) would
+   otherwise own `transform` for the whole time the animation runs and
+   silently erase this card's tilt — so it gets its own breathe keyframe
+   that keeps the tilt through the cycle instead of the shared one. */
+.paperCard.breatheSlow { animation: paperCardBreathe 4s ease-in-out infinite; }
+.paperCard.breatheSlow.snap-pop { animation: paperCardBreathe 4s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+@keyframes paperCardBreathe {
+  0%, 100% { transform: rotate(-3.5deg) translateY(0) scale(1); }
+  50%      { transform: rotate(-3.5deg) translateY(-4px) scale(1.015); }
 }
 .paperTitle { height: 8px; width: 62%; background: var(--paper-dim); border-radius: 3px; margin-bottom: 16px; }
 .paperLine { height: 5px; width: 0%; background: #E7E2F5; border-radius: 3px; margin-bottom: 10px; transition: width .3s ease; }
@@ -367,7 +366,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
   background: rgba(91, 79, 229, 0.35); transform: scale(1); transition: transform .22s ease;
 }
 .s4Headline { color: var(--ink); font-family: var(--font-display); font-size: 18px; font-weight: 800; text-align: center; padding: 0 26px; text-wrap: balance; line-height: 1.35; }
-.s4Sub { color: #5C5578; font-family: var(--font-body); font-size: 12.5px; font-weight: 600; text-align: center; padding: 0 32px; }
+.s4Sub {
+  color: #5C5578; font-family: var(--font-body); font-size: 12.5px; font-weight: 600; text-align: center; padding: 0 32px;
+  opacity: 0; transition: opacity .35s ease;
+}
+.s4Sub.in { opacity: 1; }
 
 /* ---------- Scene 5 : CTA ---------- */
 #s5 {
@@ -422,7 +425,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="s1shape s1shape-b drift2"></div>
       <div class="clockChip enter-pop" id="clockChip">&#127769; 11:47 PM</div>
       <div class="deskWrap">
-        <div class="paperCard breatheSlow enter-pop" id="paperCard">
+        <div class="paperCard breatheSlow" id="paperCard">
           <div class="paperTitle"></div>
           <div class="paperLine" id="s1l1"></div>
           <div class="paperLine" id="s1l2"></div>
@@ -441,7 +444,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
     <!-- Scene 2 — 3.0s-10.0s : the console -->
     <div class="scene" id="s2">
       <div class="ring spin"></div>
-      <div class="promptCard breathe">
+      <div class="promptCard breathe enter-pop" id="promptCard">
         <div class="promptEyebrow">Describe your lesson</div>
         <div class="promptLine"><span class="promptCaret">&gt;</span><span class="promptText" id="promptText"></span><span class="caretBlink blink"></span></div>
       </div>
@@ -534,6 +537,17 @@ const AD_CONFIG = {
     s2Prompt: 'The water cycle, for 3rd grade',
     s3: '…it becomes a book kids actually open.',
     logo: { prefix: 'Quick', accent: 'AI', suffix: 'Book' },
+  },
+
+  // Spoken narration lines, one per scene, read aloud via the Web
+  // Speech API (see speak() in main.js). Kept short so each fits
+  // comfortably inside its scene at a natural speaking rate.
+  voice: {
+    s1: 'You spent the weekend on it. They didn’t finish page one.',
+    s2: 'Just describe your lesson, and watch it become a book.',
+    s3: 'It becomes a living book kids actually want to open.',
+    s4: 'They don’t just read it. They play it, beat it, and ask for the next chapter.',
+    s5: 'QuickAIBook. Make your first book, free.',
   },
 
   // A C-major pentatonic scale. Any subset played together stays
@@ -781,7 +795,10 @@ class Timeline {
       for (const e of this.events) {
         if (!e.fired && elapsed >= e.ms) {
           e.fired = true;
-          e.fn(elapsed);
+          // Isolated so one broken beat logs an error instead of
+          // throwing out of the rAF loop and freezing the entire ad
+          // on whatever scene was showing when it happened.
+          try { e.fn(elapsed); } catch (err) { console.error(`Timeline beat @${e.ms}ms failed:`, err); }
         }
       }
       if (onProgress) onProgress(Math.min(1, elapsed / this.totalMs));
@@ -817,13 +834,51 @@ class Timeline {
   const particles = new ParticleSystem(canvas);
   const audio = new AudioEngine(AD_CONFIG.musicScale);
 
+  // Spoken narration via the Web Speech API. Voices load asynchronously
+  // in most browsers, so we pick one both immediately and again on
+  // 'voiceschanged'; speak() itself no-ops cleanly wherever the API or
+  // any voices are unavailable (e.g. headless browsers).
+  const speechSupported = 'speechSynthesis' in window;
+  let narratorVoice = null;
+  function pickNarratorVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    narratorVoice = voices.find(v => /en-US/i.test(v.lang) && /Google US English|Samantha|Female/i.test(v.name))
+      || voices.find(v => v.lang && v.lang.startsWith('en'))
+      || voices[0] || null;
+  }
+  if (speechSupported) {
+    pickNarratorVoice();
+    window.speechSynthesis.onvoiceschanged = pickNarratorVoice;
+  }
+
+  /** Speaks `text` aloud and ducks the music bed under it, restoring
+   *  volume once the line finishes. */
+  function speak(text) {
+    if (!speechSupported) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.04;
+    if (narratorVoice) utter.voice = narratorVoice;
+    if (audio.ctx) {
+      const gain = audio.master.gain;
+      const t = audio.ctx.currentTime;
+      gain.cancelScheduledValues(t);
+      gain.linearRampToValueAtTime(0.2, t + 0.15);
+      utter.onend = () => {
+        const t2 = audio.ctx.currentTime;
+        gain.cancelScheduledValues(t2);
+        gain.linearRampToValueAtTime(0.5, t2 + 0.3);
+      };
+    }
+    window.speechSynthesis.speak(utter);
+  }
+
   const els = {
     stage: $('stage'),
     scenes: ['s1', 's2', 's3', 's4', 's5'].map($),
     clockChip: $('clockChip'), paperCard: $('paperCard'), statChip: $('statChip'),
     s1l1: $('s1l1'), s1l2: $('s1l2'), s1l3: $('s1l3'), s1l4: $('s1l4'),
     s1cap1: $('s1cap1'), s1cap2: $('s1cap2'),
-    promptText: $('promptText'),
+    promptCard: $('promptCard'), promptText: $('promptText'),
     chipText: $('chipText'), chipArt: $('chipArt'), chipQuiz: $('chipQuiz'),
     glowOrb: $('glowOrb'), book: $('book'),
     ch1: $('ch1'), ch2: $('ch2'), ch3: $('ch3'),
@@ -922,12 +977,14 @@ class Timeline {
   }
 
   function resetAll() {
+    if (speechSupported) window.speechSynthesis.cancel();
     els.stage.style.transform = ''; els.stage.style.filter = '';
     els.progress.style.width = '0%';
     showScene('s1');
     off(els.clockChip); off(els.paperCard); off(els.statChip);
     [els.s1l1, els.s1l2, els.s1l3, els.s1l4].forEach(l => l.style.width = '0%');
     els.s1cap1.textContent = ''; els.s1cap2.innerHTML = '';
+    off(els.promptCard);
     els.promptText.textContent = '';
     [els.chipText, els.chipArt, els.chipQuiz].forEach(off);
     off(els.s2Headline); off(els.s2Sub);
@@ -935,7 +992,7 @@ class Timeline {
     [els.ch1, els.ch2, els.ch3].forEach(off);
     [els.bbtn1, els.bbtn2].forEach(off);
     els.s3text.innerHTML = '';
-    off(els.tablet); off(els.s4headline);
+    off(els.tablet); off(els.s4headline); off(els.s4sub);
     els.xpFill.style.width = '0%';
     off(els.streakChip);
     off(els.star1); off(els.star2);
@@ -950,7 +1007,7 @@ class Timeline {
     const cy = () => particles.height / 2;
 
     // ---------- Scene 1 (0.0s - 3.0s) — the problem ----------
-    tl.at(0,    () => { showScene('s1'); particles.ambientDensity = 14; on(els.clockChip); on(els.paperCard); });
+    tl.at(0,    () => { showScene('s1'); particles.ambientDensity = 14; on(els.clockChip); on(els.paperCard); speak(AD_CONFIG.voice.s1); });
     tl.at(220,  () => { els.s1l1.style.width = '40%'; });
     tl.at(340,  () => { els.s1l1.style.width = '95%'; });
     tl.at(480,  () => { els.s1cap1.textContent = AD_CONFIG.copy.s1cap1; });
@@ -965,7 +1022,7 @@ class Timeline {
     tl.repeat(1500, 2900, 380, () => { particles.spawnAmbient(3); });
 
     // ---------- Scene 2 (3.0s - 10.0s) — the console ----------
-    tl.at(3000, () => { showScene('s2'); particles.ambientDensity = 24; particles.spawnAmbient(10); });
+    tl.at(3000, () => { showScene('s2'); particles.ambientDensity = 24; particles.spawnAmbient(10); on(els.promptCard); speak(AD_CONFIG.voice.s2); });
     tl.at(3300, () => { typeChars(els.promptText, AD_CONFIG.copy.s2Prompt, 45); });
     tl.at(4700, () => { on(els.chipText); });
     tl.at(5000, () => { on(els.chipArt); });
@@ -981,6 +1038,7 @@ class Timeline {
     // ---------- Scene 3 (10.0s - 20.0s) — the transformation ----------
     tl.at(10000, () => {
       showScene('s3');
+      speak(AD_CONFIG.voice.s3);
       particles.ambientDensity = 6;
       particles.clear();
       particles.spawnConverge(cx(), cy(), 65);
@@ -1013,8 +1071,8 @@ class Timeline {
     });
 
     // ---------- Scene 4 (20.0s - 27.0s) — the impact ----------
-    tl.at(20000, () => { showScene('s4'); particles.ambientDensity = 14; on(els.tablet); on(els.s4headline); });
-    tl.at(20350, () => { els.s4sub.style.opacity = '0'; els.s4sub.style.transition = 'opacity .35s ease'; requestAnimationFrame(() => { els.s4sub.style.opacity = '1'; }); });
+    tl.at(20000, () => { showScene('s4'); particles.ambientDensity = 14; on(els.tablet); on(els.s4headline); speak(AD_CONFIG.voice.s4); });
+    tl.at(20350, () => { on(els.s4sub); });
     tl.at(20700, () => { els.xpFill.style.width = '35%'; });
     for (let i = 0; i < 6; i++) {
       tl.at(21100 + i * 900, () => {
@@ -1033,7 +1091,7 @@ class Timeline {
     });
 
     // ---------- Scene 5 (27.0s - 30.0s) — CTA & the shatter-assemble logo ----------
-    tl.at(27000, () => { showScene('s5'); particles.ambientDensity = 12; animateLogoShatter(); });
+    tl.at(27000, () => { showScene('s5'); particles.ambientDensity = 12; animateLogoShatter(); speak(AD_CONFIG.voice.s5); });
     tl.at(27650, () => { particles.spawnBurst(cx(), cy(), 20); }); // sparkle just ahead of the impact lock
     tl.at(28000, () => { on(els.tagline); });
     tl.at(28300, () => { on(els.ctaPill); });
