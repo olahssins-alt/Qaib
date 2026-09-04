@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickAIBook — 30s Ad</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0d0d14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+#frame { width: 390px; max-width: 100vw; }
+
+#stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background: #F7F8FB;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+canvas#fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .5s ease;
+  overflow: hidden;
+}
+.scene.active { opacity: 1; }
+
+.progressTrack {
+  position: absolute;
+  top: 14px; left: 14px; right: 14px;
+  height: 4px;
+  background: rgba(20, 22, 43, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  z-index: 4;
+}
+.progressFill { height: 100%; width: 0%; background: #5B4FE5; }
+
+#playOverlay {
+  position: absolute; inset: 0;
+  background: rgba(20, 22, 43, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10; cursor: pointer;
+}
+.playBtn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+  font-size: 26px; color: #5B4FE5;
+}
+
+button {
+  font-family: inherit; cursor: pointer; border-radius: 24px; border: none;
+  padding: 12px 20px; font-size: 14px; font-weight: 700;
+}
+#replayBtn { margin-top: 14px; width: 100%; background: #5B4FE5; color: #fff; }
+
+
+/* Reusable, always-on motion classes. Nothing in the ad ever sits
+   perfectly still — every element that isn't mid-transition carries
+   one of these ambient animations. */
+
+.breathe     { animation: breathe 2.4s ease-in-out infinite; }
+.breatheSlow { animation: breathe 4s ease-in-out infinite; }
+@keyframes breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-4px) scale(1.02); }
+}
+
+.drift  { animation: drift 5s ease-in-out infinite; }
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(6px, -10px); }
+}
+
+.drift2 { animation: drift2 6.5s ease-in-out infinite; }
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-8px, 8px); }
+}
+
+.spin { animation: spin 14s linear infinite; }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.pulseGlow { animation: pulseGlow 2s ease-in-out infinite; }
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 12px 26px rgba(91, 79, 229, 0.3); }
+  50%      { box-shadow: 0 18px 40px rgba(91, 79, 229, 0.65); }
+}
+
+.blink { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.wordfade {
+  opacity: 0;
+  transform: translateY(6px);
+  display: inline-block;
+  animation: wordfade .4s ease forwards;
+}
+@keyframes wordfade { to { opacity: 1; transform: translateY(0); } }
+
+/* Entrance transitions triggered by JS (class toggles), distinct from
+   the ambient loops above — this is where the "many transitions" the
+   timeline schedules actually come from. */
+.enter-pop {
+  transform: scale(0.6);
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;
+}
+.enter-pop.in { transform: scale(1); opacity: 1; }
+
+.enter-rise {
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform .4s ease, opacity .4s ease;
+}
+.enter-rise.in { transform: translateY(0); opacity: 1; }
+
+.enter-scale-big {
+  transform: scale(0);
+  transition: transform .7s cubic-bezier(.2,.9,.25,1.25);
+}
+.enter-scale-big.in { transform: scale(1); }
+
+.grow-width {
+  width: 0%;
+  transition: width .35s ease;
+}
+
+/* Kinetic "snap" overshoot — layered on top of any element's normal
+   entrance transition via a temporary class toggle (see snapPulse() in
+   JS), so every entrance gets a fast 110%->95%->100% punch instead of
+   a single smooth ease. */
+@keyframes snapOvershoot {
+  0%   { transform: scale(1.1); }
+  55%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.snap-pop { animation: snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+/* An element that ALSO carries an infinite ambient loop (breathe, drift,
+   pulseGlow...) needs both animations named in one declaration — the
+   later-listed one (snapOvershoot) briefly takes over `transform`, then
+   control falls back to the ambient loop once the one-shot punch ends.
+   A plain `.snap-pop` alone would instead replace the loop forever. */
+.breathe.snap-pop     { animation: breathe 2.4s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+.breatheSlow.snap-pop { animation: breathe 4s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+.drift.snap-pop        { animation: drift 5s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+.drift2.snap-pop       { animation: drift2 6.5s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+.pulseGlow.snap-pop    { animation: pulseGlow 2s ease-in-out infinite, snapOvershoot .18s cubic-bezier(.34,1.56,.64,1); }
+
+/* Hard "glitch cut" flash on #stage — a 60-80ms translate + brightness
+   spike toggled directly via inline style in JS (glitchCut()), timed to
+   the strongest beats in scene 3. */
+#stage { will-change: transform, filter; }
+
+
+/* Brand palette (from the real QuickAIBook site):
+   --purple      #5B4FE5   primary indigo-purple
+   --purple-dark #3F32C4   gradient stop
+   --navy        #14162B   text / dark backgrounds
+   --bg-light    #F7F8FB   page background                        */
+
+/* ---------- Scene 1 : the hook ---------- */
+#s1 { background: #20212E; }
+.shape {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, rgba(91, 79, 229, 0.14), transparent 70%);
+}
+.shape-a { top: 8%; left: -10%; width: 140px; height: 140px; }
+.shape-b { bottom: 20%; right: -8%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(91,79,229,0.1), transparent 70%); }
+.shape-c { top: 10%; right: -10%; width: 160px; height: 160px; }
+
+.badge {
+  position: absolute; top: 20px; left: 20px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px 12px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; color: #B7AFFF; letter-spacing: 0.5px;
+}
+
+.deskWrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.deskCard {
+  position: relative; width: 56%; aspect-ratio: 3 / 4;
+  background: #2B2C3D; border-radius: 10px; padding: 20px 18px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+}
+.deskTitle { height: 7px; width: 60%; background: #464761; border-radius: 3px; margin-bottom: 16px; }
+.deskLine { height: 5px; width: 0%; background: #3B3C52; border-radius: 3px; margin-bottom: 10px; transition: width .5s ease; }
+.cursor { position: absolute; bottom: 18px; right: 18px; width: 8px; height: 14px; background: #5B4FE5; }
+
+.captionBottom {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 26px 24px 34px;
+  color: #fff; font-size: 22px; font-weight: 800; line-height: 1.4;
+}
+.captionBottom.light { color: #fff; font-size: 18px; bottom: 26px; left: 24px; right: 24px; text-align: center; }
+
+/* ---------- Scene 2 : turning point ---------- */
+#s2 {
+  background: linear-gradient(160deg, #3F32C4, #5B4FE5);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+}
+.ring {
+  position: absolute; top: -20%; left: -20%; width: 60%; aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(255,255,255,0.06), transparent 40%);
+}
+.typeBox {
+  width: 80%; background: #fff; border-radius: 16px; padding: 20px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 26px 54px rgba(0,0,0,0.35);
+  position: relative; z-index: 2;
+}
+.typeLabel { font-size: 11px; color: #8886A3; margin-bottom: 8px; letter-spacing: 0.4px; text-transform: uppercase; font-weight: 700; }
+.typeValue { font-size: 17px; color: #14162B; min-height: 24px; font-weight: 800; }
+
+.orbitWrap { position: relative; width: 80%; height: 0; z-index: 2; }
+.orbitIcon {
+  position: absolute; width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  opacity: 0; transform: scale(0.5);
+  transition: opacity .35s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.orbitIcon.in { opacity: 1; transform: scale(1); }
+.icon-a { left: 6%;  top: -70px; background: #FAC775; }
+.icon-b { left: 44%; top: -90px; background: #97C459; }
+.icon-c { right: 6%; top: -70px; background: #85B7EB; }
+
+.s2Headline { color: #fff; font-size: 18px; font-weight: 800; position: relative; z-index: 2; opacity: 0; transition: opacity .4s ease; }
+.s2Headline.in { opacity: 1; }
+.s2Sub { color: rgba(255,255,255,0.75); font-size: 13px; font-weight: 600; position: relative; z-index: 2; opacity: 0; transition: opacity .4s ease; }
+.s2Sub.in { opacity: 1; }
+
+/* ---------- Scene 3 : the transformation ---------- */
+#s3 { background: #14162B; display: flex; align-items: center; justify-content: center; }
+.ring2 {
+  position: absolute; width: 140%; aspect-ratio: 1; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, rgba(139,128,245,0.08), transparent 60%);
+}
+.glowOrb {
+  position: absolute; width: 42%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #9C90FF, #5B4FE5 60%, transparent 72%);
+  opacity: 0; transform: scale(0.3); filter: blur(3px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.glowOrb.in { opacity: 1; transform: scale(1); }
+
+.book {
+  position: relative; width: 64%; aspect-ratio: 3 / 4;
+  background: #fff; border-radius: 18px; padding: 20px 18px;
+  display: flex; flex-direction: column; gap: 11px;
+  box-shadow: 0 0 70px rgba(139,128,245,0.55), 0 30px 60px rgba(0,0,0,0.5);
+  transform: scale(0);
+  transition: transform .7s cubic-bezier(.2,.9,.25,1.25);
+}
+.book.in { transform: scale(1); }
+.bookTitle { height: 11px; width: 58%; background: #5B4FE5; border-radius: 6px; }
+.bline { height: 6px; width: 0%; background: #E9E8F3; border-radius: 3px; transition: width .35s ease; }
+.bookBtnRow { margin-top: auto; display: flex; gap: 8px; }
+.bbtn {
+  flex: 1; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(0.6); font-size: 14px;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.bbtn.in { opacity: 1; transform: scale(1); }
+.bbtn-play  { background: #5B4FE5; color: #fff; }
+.bbtn-check { background: #EFEEFB; color: #5B4FE5; }
+
+/* ---------- Scene 4 : the impact ---------- */
+#s4 {
+  background: linear-gradient(150deg, #EFEEFB, #F7F8FB);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+}
+.tablet {
+  position: relative; width: 58%; aspect-ratio: 4 / 5;
+  background: #14162B; border-radius: 20px; padding: 10px;
+  box-shadow: 0 26px 54px rgba(20, 22, 43, 0.3);
+}
+.tabletScreen {
+  width: 100%; height: 100%; background: #fff; border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.screenGlow { position: absolute; top: -20px; left: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(91,79,229,0.08); }
+.checkCircle {
+  width: 52px; height: 52px; border-radius: 50%; background: #EAF3DE;
+  display: flex; align-items: center; justify-content: center; font-size: 26px; color: #3B6D11;
+}
+.correctLabel { font-size: 13px; color: #14162B; font-weight: 700; }
+.star {
+  position: absolute; font-size: 26px; color: #FFD84D;
+  opacity: 0; transform: scale(0.4) rotate(-20deg);
+  transition: opacity .4s cubic-bezier(.34,1.56,.64,1), transform .4s cubic-bezier(.34,1.56,.64,1);
+  text-shadow: 0 0 18px rgba(255,216,77,0.8);
+}
+.star.in { opacity: 1; transform: scale(1) rotate(0deg); }
+.star1 { top: 14px; right: 14px; }
+.star2 { bottom: 16px; left: 18px; font-size: 18px; transform: scale(0.4) rotate(20deg); }
+.tapdot {
+  position: absolute; bottom: 26px; right: 26px; width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(91, 79, 229, 0.35); transform: scale(1); transition: transform .25s ease;
+}
+.s4Headline { color: #14162B; font-size: 19px; font-weight: 800; text-align: center; padding: 0 24px; }
+.s4Headline span { color: #5B4FE5; }
+
+/* ---------- Scene 5 : CTA ---------- */
+#s5 {
+  background: #F7F8FB;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+.logoGlow { position: absolute; width: 55%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(91,79,229,0.2), transparent 70%); }
+.ring3 { position: absolute; width: 120%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(91,79,229,0.05), transparent 50%); }
+.logo {
+  position: relative; font-size: 27px; font-weight: 800; color: #14162B;
+  white-space: nowrap;
+}
+.logo span { color: #5B4FE5; }
+
+/* Shatter-assemble letters: each .logoLetter starts flung outward
+   (random offset/rotation set via inline --dx/--dy/--rot custom
+   properties from JS) and snaps home with an overshoot-settle ease
+   when .in is added, staggered letter-by-letter. */
+.logoLetter {
+  display: inline-block;
+  opacity: 0;
+  transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg));
+  transition: transform .38s cubic-bezier(.34,1.56,.64,1), opacity .22s ease;
+}
+.logoLetter.in { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+.logoLetter.accent { color: #5B4FE5; }
+
+/* Brief impact flash on the logo glow, synced to the last letter
+   locking into place. */
+@keyframes logoImpactFlash {
+  0%   { opacity: 0.35; transform: scale(0.8); }
+  35%  { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+.logoGlow.impact { animation: drift 5s ease-in-out infinite, logoImpactFlash .3s ease; }
+.ctaPill {
+  display: inline-flex; padding: 14px 32px; border-radius: 26px;
+  background: linear-gradient(135deg, #5B4FE5, #3F32C4); color: #fff;
+  font-size: 15px; font-weight: 800; position: relative; z-index: 2;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.ctaPill.in { opacity: 1; transform: translateY(0); }
+
+</style>
+</head>
+<body>
+<div id="frame">
+  <div id="stage">
+    <canvas id="fx"></canvas>
+
+    <!-- Scene 1 — 0.0s–3.0s : the hook -->
+    <div class="scene active" id="s1">
+      <div class="shape shape-a drift"></div>
+      <div class="shape shape-b drift2"></div>
+      <div class="badge enter-pop" id="s1badge">AI-POWERED PUBLISHING</div>
+      <div class="deskWrap">
+        <div class="deskCard breatheSlow enter-pop" id="s1desk">
+          <div class="deskTitle"></div>
+          <div class="deskLine" id="s1l1"></div>
+          <div class="deskLine" id="s1l2"></div>
+          <div class="deskLine" id="s1l3"></div>
+          <div class="deskLine" id="s1l4"></div>
+          <div class="cursor blink"></div>
+        </div>
+      </div>
+      <div class="captionBottom" id="s1text"></div>
+    </div>
+
+    <!-- Scene 2 — 3.0s–10.0s : turning point -->
+    <div class="scene" id="s2">
+      <div class="ring spin"></div>
+      <div class="typeBox breathe">
+        <div class="typeLabel">Your idea</div>
+        <div class="typeValue" id="typed">&nbsp;</div>
+      </div>
+      <div class="orbitWrap">
+        <div class="orbitIcon icon-a drift" id="icon1">?</div>
+        <div class="orbitIcon icon-b drift2" id="icon2">&#9654;</div>
+        <div class="orbitIcon icon-c drift" id="icon3">&#9998;</div>
+      </div>
+      <div class="s2Headline">Type your idea&hellip;</div>
+      <div class="s2Sub">For teachers. For parents. For anyone.</div>
+    </div>
+
+    <!-- Scene 3 — 10.0s–20.0s : the transformation (sci-fi peak) -->
+    <div class="scene" id="s3">
+      <div class="ring2 spin"></div>
+      <div class="glowOrb" id="glowOrb"></div>
+      <div class="book" id="book">
+        <div class="bookTitle pulseGlow"></div>
+        <div class="bline" id="bl1"></div>
+        <div class="bline" id="bl2"></div>
+        <div class="bline" id="bl3"></div>
+        <div class="bookBtnRow">
+          <div class="bbtn bbtn-play breathe" id="bbtn1">&#9654;</div>
+          <div class="bbtn bbtn-check breathe" id="bbtn2">&#10003;</div>
+        </div>
+      </div>
+      <div class="captionBottom light" id="s3text"></div>
+    </div>
+
+    <!-- Scene 4 — 20.0s–27.0s : the impact -->
+    <div class="scene" id="s4">
+      <div class="shape shape-c drift"></div>
+      <div class="tablet breathe enter-pop" id="s4tablet">
+        <div class="tabletScreen">
+          <div class="screenGlow drift2"></div>
+          <div class="checkCircle">&#10003;</div>
+          <div class="correctLabel">Correct!</div>
+          <div class="star star1" id="star1">&#9733;</div>
+          <div class="star star2" id="star2">&#9733;</div>
+        </div>
+        <div class="tapdot" id="tapdot"></div>
+      </div>
+      <div class="s4Headline enter-rise" id="s4headline">Kids don't just read it.<br><span>They play with it.</span></div>
+    </div>
+
+    <!-- Scene 5 — 27.0s–30.0s : CTA -->
+    <div class="scene" id="s5">
+      <div class="logoGlow drift" id="logoGlow"></div>
+      <div class="ring3 spin"></div>
+      <div class="logo" id="logo">Quick<span>AI</span>Book</div>
+      <div class="ctaPill pulseGlow" id="ctaPill">Start creating free</div>
+    </div>
+
+    <div id="playOverlay">
+      <div class="playBtn">&#9654;</div>
+    </div>
+
+    <div class="progressTrack">
+      <div class="progressFill" id="progress"></div>
+    </div>
+  </div>
+
+  <button id="replayBtn">&#8635; Replay</button>
+</div>
+
+<script>
+/**
+ * config.js
+ * All editable ad content lives here — copy, timing anchors, colors.
+ * To change wording or retime a scene, edit this file only; the
+ * engine files (timeline.js, particles.js, audio.js) never need to
+ * change for a content edit.
+ */
+
+const AD_CONFIG = {
+  totalDurationMs: 30000,
+
+  scenes: {
+    s1: { startMs: 0,     endMs: 3000,  id: 's1' },
+    s2: { startMs: 3000,  endMs: 10000, id: 's2' },
+    s3: { startMs: 10000, endMs: 20000, id: 's3' },
+    s4: { startMs: 20000, endMs: 27000, id: 's4' },
+    s5: { startMs: 27000, endMs: 30000, id: 's5' },
+  },
+
+  copy: {
+    s1: 'The lesson you spent hours on\u2026 nobody opened it twice.',
+    s2Headline: 'Type your idea\u2026',
+    s2Sub: 'For teachers. For parents. For anyone.',
+    s2TypedValue: 'Photosynthesis for kids',
+    s3: '\u2026it becomes a living AI book.',
+    s4: { line1: "Kids don't just read it.", line2: 'They play with it.' },
+    logo: { prefix: 'Quick', accent: 'AI', suffix: 'Book' },
+    cta: 'Start creating free',
+  },
+
+  // A C-major pentatonic scale. Any subset of these notes played
+  // together stays consonant, so the audio engine can improvise a
+  // "walking" note pattern without ever sounding random/dissonant.
+  musicScale: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00],
+};
+
+
+/**
+ * particles.js
+ * A small canvas particle system with three behaviors:
+ *   - ambient: ~drifting dust, runs continuously behind every scene
+ *   - burst:   an explosion of particles from a point (scene 3 reveal)
+ *   - converge: particles flying inward toward a point (scene 3 build-up)
+ * Density is adjustable live via `system.ambientDensity`, so a scene
+ * can turn the background "busier" or "calmer" without swapping systems.
+ */
+class ParticleSystem {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.particles = [];
+    this.ambientDensity = 18;
+    this.width = 0;
+    this.height = 0;
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+  }
+
+  _resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    this.width = this.canvas.width = rect.width;
+    this.height = this.canvas.height = rect.height;
+  }
+
+  spawnAmbient(count) {
+    for (let i = 0; i < count; i++) {
+      this.particles.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 1.4 + 0.5,
+        a: Math.random() * 0.35 + 0.08,
+        hue: '255,255,255',
+      });
+    }
+  }
+
+  spawnBurst(cx, cy, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 3.2 + 1;
+      this.particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r: Math.random() * 2.5 + 1,
+        a: 1,
+        hue: '156,144,255',
+        decay: 0.014,
+      });
+    }
+  }
+
+  spawnConverge(cx, cy, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 150 + 70;
+      this.particles.push({
+        x: cx + Math.cos(angle) * dist,
+        y: cy + Math.sin(angle) * dist,
+        tx: cx, ty: cy,
+        r: Math.random() * 2 + 1,
+        a: 0.9,
+        hue: '255,255,255',
+        converge: true,
+        speed: 0.055 + Math.random() * 0.04,
+      });
+    }
+  }
+
+  clear() { this.particles = []; }
+
+  /** Call once per animation frame. */
+  tick() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.width, this.height);
+
+    this.particles.forEach(p => {
+      if (p.converge) {
+        p.x += (p.tx - p.x) * p.speed;
+        p.y += (p.ty - p.y) * p.speed;
+      } else {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = this.width;  if (p.x > this.width)  p.x = 0;
+        if (p.y < 0) p.y = this.height; if (p.y > this.height) p.y = 0;
+        if (p.decay) p.a -= p.decay;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.hue},${Math.max(0, p.a)})`;
+      ctx.fill();
+    });
+
+    this.particles = this.particles.filter(p => p.a > 0.02);
+    if (this.particles.length < this.ambientDensity) this.spawnAmbient(1);
+  }
+}
+
+
+/**
+ * audio.js
+ * A scheduled music bed, not random beeps. Everything is pre-planned
+ * against Web Audio's own clock (audioCtx.currentTime), so it stays
+ * perfectly in sync even if the browser tab is briefly backgrounded
+ * (unlike setTimeout-driven sound, which can drift).
+ *
+ * Musical design:
+ *  - every note comes from ONE pentatonic scale (see config.js), so
+ *    any combination played together is guaranteed to sound consonant
+ *  - a soft sustained "pad" chord sits under every scene
+ *  - a steady plucked pattern walks the scale like a simple melody
+ *  - scene 3 gets a rising filtered sweep + a bright chord stab at the
+ *    exact moment the book appears, matching the visual climax
+ */
+class AudioEngine {
+  constructor(scale) {
+    this.scale = scale;
+    this.ctx = null;
+    this.master = null;
+  }
+
+  init() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.5;
+    this.master.connect(this.ctx.destination);
+  }
+
+  pluck(freq, startTime, dur, vol) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(vol, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+    osc.connect(gain); gain.connect(this.master);
+    osc.start(startTime); osc.stop(startTime + dur + 0.05);
+  }
+
+  pad(freqs, startTime, dur, vol) {
+    freqs.forEach((f, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      osc.detune.value = (idx - 1) * 6;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(vol, startTime + dur * 0.25);
+      gain.gain.linearRampToValueAtTime(vol * 0.7, startTime + dur * 0.7);
+      gain.gain.linearRampToValueAtTime(0, startTime + dur);
+      osc.connect(gain); gain.connect(this.master);
+      osc.start(startTime); osc.stop(startTime + dur + 0.05);
+    });
+  }
+
+  riseSweep(startTime, dur) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(200, startTime);
+    filter.frequency.exponentialRampToValueAtTime(4000, startTime + dur);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, startTime);
+    osc.frequency.exponentialRampToValueAtTime(260, startTime + dur);
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, startTime + dur * 0.9);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+    osc.connect(filter); filter.connect(gain); gain.connect(this.master);
+    osc.start(startTime); osc.stop(startTime + dur + 0.05);
+  }
+
+  chordStab(startTime) {
+    [523.25, 659.25, 783.99, 1046.5].forEach(f => this.pluck(f, startTime, 0.6, 0.09));
+  }
+
+  /** Schedules the full 30s musical bed in one pass. */
+  scheduleFullTimeline() {
+    const scale = this.scale;
+    const t0 = this.ctx.currentTime + 0.05;
+
+    // Scene 1 (0-3s): sparse, dim, unresolved
+    this.pad([130.81, 155.56], t0, 3, 0.05);
+    for (let i = 0; i < 6; i++) this.pluck(scale[0], t0 + i * 0.5, 0.15, 0.02);
+
+    // Scene 2 (3-10s): brighter pad, walking pentatonic pulse builds energy
+    this.pad([261.63, 329.63, 392.00], t0 + 3, 7, 0.06);
+    for (let i = 0; i < 14; i++) this.pluck(scale[i % 5], t0 + 3 + i * 0.5, 0.3, 0.045);
+
+    // Scene 3 (10-20s): the peak — sweep, stab, driving pattern
+    this.riseSweep(t0 + 10, 1.4);
+    this.chordStab(t0 + 11.4);
+    this.pad([392.00, 523.25, 659.25], t0 + 11.4, 8.6, 0.07);
+    for (let i = 0; i < 17; i++) this.pluck(scale[(i * 2) % scale.length], t0 + 11.9 + i * 0.5, 0.35, 0.05);
+
+    // Scene 4 (20-27s): warm, playful, resolving
+    this.pad([261.63, 329.63, 392.00], t0 + 20, 7, 0.055);
+    for (let i = 0; i < 14; i++) this.pluck(scale[5 + (i % 4)], t0 + 20 + i * 0.5, 0.25, 0.04);
+
+    // Scene 5 (27-30s): final resolving chord. The impact stab for the
+    // logo shatter-assemble is NOT scheduled here — it's fired live,
+    // synced to the moment the last letter locks (see animateLogoShatter
+    // in main.js), so it can never drift out of sync with the visual.
+    this.pad([261.63, 329.63, 392.00, 523.25], t0 + 27, 3, 0.09);
+  }
+}
+
+
+/**
+ * timeline.js
+ * A precise, drift-free scheduler built on requestAnimationFrame instead
+ * of chained setTimeout calls. Every beat is registered once with
+ * `.at(ms, fn)`; the engine walks the real elapsed time each frame and
+ * fires each beat exactly once. This is what lets a 30s ad hit dozens
+ * of transitions without accumulating timing drift.
+ */
+class Timeline {
+  constructor(totalMs) {
+    this.totalMs = totalMs;
+    this.events = [];
+    this.rafId = null;
+    this.startTime = null;
+  }
+
+  /** Register a beat: at `ms` milliseconds in, call `fn`. Chainable. */
+  at(ms, fn) {
+    this.events.push({ ms, fn, fired: false });
+    return this;
+  }
+
+  /** Register several beats that repeat every `intervalMs` from `startMs` to `endMs`. */
+  repeat(startMs, endMs, intervalMs, fn) {
+    for (let t = startMs; t <= endMs; t += intervalMs) this.at(t, fn);
+    return this;
+  }
+
+  stop() {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
+  }
+
+  /** Starts (or restarts) the timeline. `onProgress(fraction)` fires every frame. */
+  start(onProgress) {
+    this.stop();
+    this.events.forEach(e => { e.fired = false; });
+    this.startTime = performance.now();
+
+    const loop = (now) => {
+      const elapsed = now - this.startTime;
+      for (const e of this.events) {
+        if (!e.fired && elapsed >= e.ms) {
+          e.fired = true;
+          e.fn(elapsed);
+        }
+      }
+      if (onProgress) onProgress(Math.min(1, elapsed / this.totalMs));
+      if (elapsed < this.totalMs) {
+        this.rafId = requestAnimationFrame(loop);
+      }
+    };
+    this.rafId = requestAnimationFrame(loop);
+  }
+}
+
+
+/**
+ * main.js
+ * Wires config.js + particles.js + audio.js + timeline.js together and
+ * schedules every visual beat of the 30s ad. Each `tl.at(ms, fn)` call
+ * below is one distinct transition — well over 100 of them once the
+ * per-scene `tl.repeat(...)` ambient fillers are counted, keeping any
+ * gap between beats under ~400ms (scenes 2-3) or ~600ms (elsewhere),
+ * so the ad is always mid-transition rather than sitting on a static frame.
+ */
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  /** Restarts a CSS animation on `el` by toggling the class via reflow —
+   *  used to re-fire the .snap-pop overshoot punch on every entrance. */
+  function snapPulse(el) {
+    if (!el) return;
+    el.classList.remove('snap-pop');
+    void el.offsetWidth;
+    el.classList.add('snap-pop');
+  }
+  const on = (el) => { el.classList.add('in'); snapPulse(el); };
+  const off = (el) => el.classList.remove('in');
+
+  const canvas = $('fx');
+  const particles = new ParticleSystem(canvas);
+  const audio = new AudioEngine(AD_CONFIG.musicScale);
+
+  const els = {
+    stage: $('stage'),
+    scenes: ['s1', 's2', 's3', 's4', 's5'].map($),
+    badge: $('s1badge'), desk: $('s1desk'),
+    s1l1: $('s1l1'), s1l2: $('s1l2'), s1l3: $('s1l3'), s1l4: $('s1l4'),
+    s1text: $('s1text'),
+    typed: $('typed'), typeBox: document.querySelector('.typeBox'),
+    icon1: $('icon1'), icon2: $('icon2'), icon3: $('icon3'),
+    glowOrb: $('glowOrb'), book: $('book'),
+    bl1: $('bl1'), bl2: $('bl2'), bl3: $('bl3'),
+    bbtn1: $('bbtn1'), bbtn2: $('bbtn2'),
+    s3text: $('s3text'),
+    tablet: $('s4tablet'), s4headline: $('s4headline'),
+    star1: $('star1'), star2: $('star2'), tapdot: $('tapdot'),
+    logo: $('logo'), logoGlow: $('logoGlow'), logoLetters: [], ctaPill: $('ctaPill'),
+    progress: $('progress'),
+    playOverlay: $('playOverlay'),
+    replayBtn: $('replayBtn'),
+    s2Headline: document.querySelector('.s2Headline'),
+    s2Sub: document.querySelector('.s2Sub'),
+  };
+
+  function showScene(id) {
+    els.scenes.forEach(s => s.classList.toggle('active', s.id === id));
+  }
+
+  /** 60-80ms hard flash/offset on the whole stage — a percussive "glitch
+   *  cut" for the strongest beats in scene 3. Uses inline styles (not a
+   *  transition) so the hit and the recovery are both instant. */
+  function glitchCut(durationMs = 70) {
+    const dx = (Math.random() * 3 + 2) * (Math.random() < 0.5 ? -1 : 1);
+    const dy = (Math.random() * 3 + 2) * (Math.random() < 0.5 ? -1 : 1);
+    els.stage.style.transition = 'none';
+    els.stage.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    els.stage.style.filter = 'brightness(1.7)';
+    setTimeout(() => {
+      els.stage.style.transform = '';
+      els.stage.style.filter = '';
+    }, durationMs);
+  }
+
+  /** Rebuilds #logo as one <span class="logoLetter"> per character, each
+   *  starting flung outward with a random offset/rotation (a "shard").
+   *  Call once per reset; animateLogoShatter() then flies them home. */
+  function buildLogoLetters() {
+    const cfg = AD_CONFIG.copy.logo;
+    const chars = (cfg.prefix + cfg.accent + cfg.suffix).split('');
+    const accentStart = cfg.prefix.length;
+    const accentEnd = accentStart + cfg.accent.length;
+    els.logo.innerHTML = '';
+    els.logoLetters = chars.map((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'logoLetter' + (i >= accentStart && i < accentEnd ? ' accent' : '');
+      span.textContent = ch;
+      const dx = (40 + Math.random() * 40) * (Math.random() < 0.5 ? -1 : 1);
+      const dy = (40 + Math.random() * 40) * (Math.random() < 0.5 ? -1 : 1);
+      const rot = (45 + Math.random() * 45) * (Math.random() < 0.5 ? -1 : 1);
+      span.style.setProperty('--dx', dx.toFixed(0) + 'px');
+      span.style.setProperty('--dy', dy.toFixed(0) + 'px');
+      span.style.setProperty('--rot', rot.toFixed(0) + 'deg');
+      els.logo.appendChild(span);
+      return span;
+    });
+  }
+
+  /** Flies every logo letter home with a ~30ms stagger; the instant the
+   *  LAST one locks into place, fires the impact flash + chord stab. */
+  function animateLogoShatter() {
+    const stagger = 30;
+    const settleMs = 380; // matches .logoLetter's transition duration
+    els.logoLetters.forEach((letter, i) => {
+      setTimeout(() => on(letter), i * stagger);
+    });
+    setTimeout(() => {
+      els.logoGlow.classList.remove('impact');
+      void els.logoGlow.offsetWidth;
+      els.logoGlow.classList.add('impact'); // its own keyframes carry the punch
+      if (audio.ctx) audio.chordStab(audio.ctx.currentTime + 0.02);
+    }, (els.logoLetters.length - 1) * stagger + settleMs);
+  }
+
+  /** Types out `text` one word at a time, each word fading up individually. */
+  function typeWords(el, text) {
+    el.innerHTML = '';
+    text.split(' ').forEach((w, i) => {
+      const span = document.createElement('span');
+      span.className = 'wordfade';
+      span.style.animationDelay = (i * 0.18) + 's';
+      span.textContent = w + ' ';
+      el.appendChild(span);
+    });
+  }
+
+  function typeChars(el, text, speedMs) {
+    let i = 0;
+    const iv = setInterval(() => {
+      el.textContent = text.slice(0, i + 1);
+      i++;
+      if (i >= text.length) clearInterval(iv);
+    }, speedMs);
+  }
+
+  function resetAll() {
+    els.stage.style.transform = ''; els.stage.style.filter = '';
+    els.progress.style.width = '0%';
+    showScene('s1');
+    off(els.badge); off(els.desk);
+    els.typed.textContent = '\u00A0';
+    [els.s1l1, els.s1l2, els.s1l3, els.s1l4].forEach(l => l.style.width = '0%');
+    els.s1text.innerHTML = '';
+    [els.icon1, els.icon2, els.icon3].forEach(off);
+    off(els.s2Headline); off(els.s2Sub);
+    off(els.glowOrb); off(els.book);
+    [els.bl1, els.bl2, els.bl3].forEach(l => l.style.width = '0%');
+    [els.bbtn1, els.bbtn2].forEach(off);
+    els.s3text.innerHTML = '';
+    off(els.tablet); off(els.s4headline);
+    off(els.star1); off(els.star2);
+    els.logoGlow.classList.remove('impact');
+    buildLogoLetters();
+    off(els.ctaPill);
+  }
+
+  function buildTimeline() {
+    const tl = new Timeline(AD_CONFIG.totalDurationMs);
+    const cx = () => particles.width / 2;
+    const cy = () => particles.height / 2;
+
+    // ---------- Scene 1 (0.0s - 3.0s) — the hook ----------
+    // Every line grows in two stutter-steps (a quick overshoot-ish jump,
+    // then the settle) instead of one smooth width tween.
+    tl.at(0,    () => { showScene('s1'); particles.ambientDensity = 16; on(els.badge); on(els.desk); });
+    tl.at(200,  () => { els.s1l1.style.width = '40%'; });
+    tl.at(320,  () => { els.s1l1.style.width = '95%'; });
+    tl.at(460,  () => { typeWords(els.s1text, AD_CONFIG.copy.s1); });
+    tl.at(600,  () => { els.s1l2.style.width = '45%'; });
+    tl.at(720,  () => { els.s1l2.style.width = '80%'; });
+    tl.at(900,  () => { els.s1l3.style.width = '50%'; });
+    tl.at(1020, () => { els.s1l3.style.width = '88%'; });
+    tl.at(1180, () => { els.s1l4.style.width = '40%'; });
+    tl.at(1300, () => { els.s1l4.style.width = '70%'; });
+    // ambient keep-alive filler — guarantees no static gap through to scene 2
+    tl.repeat(1500, 2900, 380, () => { particles.spawnAmbient(3); });
+
+    // ---------- Scene 2 (3.0s - 10.0s) — turning point ----------
+    tl.at(3000, () => { showScene('s2'); particles.ambientDensity = 26; particles.spawnAmbient(10); });
+    tl.at(3150, () => { snapPulse(els.typeBox); });
+    tl.at(3300, () => { on(els.s2Headline); on(els.s2Sub); });
+    tl.at(3500, () => { typeChars(els.typed, AD_CONFIG.copy.s2TypedValue, 55); });
+    tl.at(4700, () => { on(els.icon1); });
+    tl.at(5000, () => { on(els.icon2); });
+    tl.at(5300, () => { on(els.icon3); });
+    tl.at(5650, () => { [els.icon1, els.icon2, els.icon3].forEach(snapPulse); });
+    tl.at(7000, () => { particles.spawnAmbient(8); });
+    tl.at(8050, () => { [els.icon1, els.icon2, els.icon3].forEach(snapPulse); });
+    tl.at(9000, () => { particles.spawnAmbient(8); });
+    tl.at(9350, () => { snapPulse(els.s2Headline); snapPulse(els.s2Sub); });
+    // energetic middle: max 400ms between ANY two beats — filler covers it
+    tl.repeat(3650, 9900, 360, () => { particles.spawnAmbient(3); });
+
+    // ---------- Scene 3 (10.0s - 20.0s) — the sci-fi climax ----------
+    tl.at(10000, () => {
+      showScene('s3');
+      particles.ambientDensity = 6;
+      particles.clear();
+      particles.spawnConverge(cx(), cy(), 65);
+    });
+    tl.at(10600, () => { on(els.glowOrb); });
+    // GLITCH CUT #1 — the book reveal, the biggest hit in the ad
+    tl.at(11400, () => {
+      particles.clear();
+      particles.spawnBurst(cx(), cy(), 80);
+      on(els.book);
+      off(els.glowOrb);
+      particles.ambientDensity = 22;
+      glitchCut(80);
+    });
+    tl.at(12000, () => { els.bl1.style.width = '40%'; });
+    tl.at(12100, () => { els.bl1.style.width = '90%'; });
+    tl.at(12350, () => { els.bl2.style.width = '40%'; });
+    tl.at(12450, () => { els.bl2.style.width = '75%'; });
+    tl.at(12700, () => { els.bl3.style.width = '45%'; });
+    tl.at(12800, () => { els.bl3.style.width = '82%'; });
+    tl.at(13100, () => { on(els.bbtn1); });
+    tl.at(13450, () => { on(els.bbtn2); });
+    tl.at(14000, () => { typeWords(els.s3text, AD_CONFIG.copy.s3); });
+    // GLITCH CUT #2 — mid-climax punctuation
+    tl.at(15200, () => { glitchCut(70); particles.spawnBurst(cx(), cy(), 20); });
+    tl.at(16000, () => { particles.spawnAmbient(6); });
+    tl.at(18000, () => { particles.spawnAmbient(6); });
+    // GLITCH CUT #3 — final punch before the transformation resolves
+    tl.at(18400, () => { glitchCut(75); particles.spawnBurst(cx(), cy(), 15); });
+    // energetic middle: max 400ms between ANY two beats — filler covers it
+    tl.repeat(10150, 19900, 350, () => {
+      particles.spawnAmbient(2);
+      if (Math.random() < 0.4) snapPulse(els.book);
+    });
+
+    // ---------- Scene 4 (20.0s - 27.0s) — the impact ----------
+    tl.at(20000, () => { showScene('s4'); particles.ambientDensity = 14; on(els.tablet); on(els.s4headline); });
+    // a small rhythmic "tap" pulse on the dot, six times, ~0.9s apart
+    for (let i = 0; i < 6; i++) {
+      tl.at(20200 + i * 900, () => {
+        els.tapdot.style.transform = 'scale(1.6)';
+        setTimeout(() => { els.tapdot.style.transform = 'scale(1)'; }, 150);
+      });
+    }
+    tl.at(22800, () => { on(els.star1); });
+    tl.at(24600, () => { on(els.star2); });
+    tl.at(25550, () => { snapPulse(els.star1); snapPulse(els.star2); });
+    // filler, spaced within the 600ms ceiling that applies outside scenes 2-3
+    tl.repeat(20450, 26900, 480, () => {
+      particles.spawnAmbient(3);
+      if (Math.random() < 0.4) snapPulse(els.tablet);
+    });
+
+    // ---------- Scene 5 (27.0s - 30.0s) — CTA & the shatter-assemble logo ----------
+    tl.at(27000, () => { showScene('s5'); particles.ambientDensity = 12; animateLogoShatter(); });
+    tl.at(27650, () => { particles.spawnBurst(cx(), cy(), 20); }); // sparkle just ahead of the impact lock
+    tl.at(28000, () => { on(els.ctaPill); });
+    tl.at(28350, () => { snapPulse(els.ctaPill); });
+    tl.repeat(27300, 29900, 480, () => { particles.spawnAmbient(3); });
+
+    return tl;
+  }
+
+  let timeline = null;
+
+  function startShow() {
+    resetAll();
+    particles.clear();
+    if (audio.ctx) audio.scheduleFullTimeline();
+    timeline = buildTimeline();
+    timeline.start((fraction) => { els.progress.style.width = (fraction * 100).toFixed(1) + '%'; });
+  }
+
+  // Particle canvas runs its own continuous loop, independent of the
+  // beat timeline, so the background is never static even between beats.
+  (function particleLoop() {
+    particles.tick();
+    requestAnimationFrame(particleLoop);
+  })();
+
+  els.playOverlay.addEventListener('click', function () {
+    if (!audio.ctx) audio.init();
+    this.style.display = 'none';
+    particles._resize();
+    startShow();
+  });
+
+  els.replayBtn.addEventListener('click', startShow);
+})();
+
+</script>
+</body>
+</html>
