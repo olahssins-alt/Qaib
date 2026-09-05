@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuickAIBook — 60s Ad</title>
+<title>QuickAIBook — 72s Ad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Poppins:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
@@ -147,7 +147,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   .breathe, .breatheSlow, .drift, .drift2, .spin, .blink { animation: none !important; }
 }
 
-/* ---------- shared: the portal + cover reveal (used by scenes 2, 3, 4) ---------- */
+/* ---------- shared: the portal + triple-book reveal (used by scene 3) ---------- */
 .portalWrap {
   position: absolute; top: 50%; left: 50%; width: 62%; aspect-ratio: 1; z-index: 3;
   opacity: 0; transform: translate(-50%,-50%) scale(0.2) rotate(0deg);
@@ -159,15 +159,19 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .portalRing3 { inset: 26%; border-top-color: #fff; border-right-color: var(--brand); animation: spin 0.9s linear infinite; }
 .portalCore { position: absolute; inset: 34%; border-radius: 50%; background: radial-gradient(circle, #fff, var(--brand-bright) 40%, var(--magic-a) 70%, transparent 85%); filter: blur(4px) saturate(1.6); }
 
-.coverReveal {
-  position: absolute; top: 50%; left: 50%; width: 58%; aspect-ratio: 11 / 10; z-index: 3; border-radius: 14px; overflow: hidden;
-  box-shadow: 0 26px 60px rgba(0,0,0,0.55), 0 0 90px rgba(139,127,255,0.55);
-  perspective: 700px;
-  opacity: 0; transform: translate(-50%,-50%) perspective(700px) rotateX(60deg) rotate(-8deg) scale(0.3);
-  transition: opacity .3s ease, transform .6s cubic-bezier(.2,.9,.25,1.3);
+.tripleReveal { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.tripleCard {
+  position: absolute; top: 50%; width: 38%; aspect-ratio: 11 / 10; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 20px 46px rgba(0,0,0,0.5), 0 0 60px rgba(139,127,255,0.4);
+  opacity: 0; transition: opacity .3s ease, transform .55s cubic-bezier(.2,.9,.25,1.3);
 }
-.coverReveal.in { opacity: 1; transform: translate(-50%,-50%) perspective(700px) rotateX(0deg) rotate(-3deg) scale(1); }
-.coverReveal img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tripleCard img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tripleCard-l { left: 21%; z-index: 1; transform: translate(-50%,-50%) perspective(700px) rotateY(24deg) rotate(-11deg) scale(0.45); }
+.tripleCard-l.in { opacity: 1; transform: translate(-50%,-50%) perspective(700px) rotateY(12deg) rotate(-9deg) scale(0.8); }
+.tripleCard-c { left: 50%; z-index: 2; transform: translate(-50%,-50%) perspective(700px) scale(0.45); }
+.tripleCard-c.in { opacity: 1; transform: translate(-50%,-50%) perspective(700px) scale(1); }
+.tripleCard-r { left: 79%; z-index: 1; transform: translate(-50%,-50%) perspective(700px) rotateY(-24deg) rotate(11deg) scale(0.45); }
+.tripleCard-r.in { opacity: 1; transform: translate(-50%,-50%) perspective(700px) rotateY(-12deg) rotate(9deg) scale(0.8); }
 .portalShock {
   position: absolute; top: 50%; left: 50%; width: 58%; aspect-ratio: 1; z-index: 3; border-radius: 50%;
   border: 3px solid var(--brand-bright); opacity: 0; transform: translate(-50%,-50%) scale(0.3); pointer-events: none;
@@ -295,8 +299,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .launchBtn { text-align: center; padding: 9px; border-radius: 10px; background: var(--paper-dim); color: #9691B8; font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: .03em; transition: background .3s ease, color .3s ease; }
 .launchBtn.in { background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff; }
 
-/* ---------- Scene 3 : the flipbook engine ---------- */
-#s3 { background: radial-gradient(90% 70% at 50% 30%, #201A4A, var(--ink) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+/* ---------- Scene 3 : the triple-book reveal ---------- */
+#s3 { background: radial-gradient(90% 70% at 50% 30%, #201A4A, var(--ink) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* ---------- Scene 4 : the flipbook engine ---------- */
+#s4 { background: radial-gradient(90% 70% at 50% 30%, #201A4A, var(--ink) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .ring2 { position: absolute; width: 145%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(139,127,255,0.09), transparent 60%); }
 .featBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #B6AEFF; text-transform: uppercase; position: relative; z-index: 2; opacity: 0; transition: opacity .3s ease; }
 .featBadge.in { opacity: 1; }
@@ -324,8 +331,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .featCaption { position: relative; z-index: 2; color: #fff; font-family: var(--font-display); font-size: 13px; font-weight: 800; text-align: center; padding: 0 30px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
 .featCaption.in { opacity: 1; }
 
-/* ---------- Scene 4 : style switching ---------- */
-#s4 { background: linear-gradient(155deg, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+/* ---------- Scene 5 : style switching ---------- */
+#s5 { background: linear-gradient(155deg, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .s4shape { position: absolute; top: 8%; right: -12%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.12), transparent 70%); }
 .featBadgeDark { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
 .featBadgeDark.in { opacity: 1; }
@@ -364,8 +371,58 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .styleCaption { color: var(--ink); font-family: var(--font-display); font-size: 14px; font-weight: 800; text-align: center; padding: 0 28px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
 .styleCaption.in { opacity: 1; }
 
-/* ---------- Scene 5 : pricing ---------- */
-#s5 { background: linear-gradient(160deg, var(--paper-dim), var(--paper)); display: flex; align-items: center; justify-content: center; }
+/* ---------- Scene 6 : make money ---------- */
+#s6 { background: radial-gradient(90% 70% at 50% 15%, #E9FBF2, var(--paper) 65%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.moneyShape { position: absolute; border-radius: 50%; }
+.moneyShape-a { top: -10%; left: -14%; width: 170px; height: 170px; background: radial-gradient(circle, rgba(22,163,74,0.12), transparent 70%); }
+.moneyShape-b { bottom: -8%; right: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(245,185,66,0.12), transparent 70%); }
+.moneyBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #16A34A; text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
+.moneyBadge.in { opacity: 1; }
+.moneyCounterWrap {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  opacity: 0; transform: perspective(600px) rotateX(-35deg) scale(0.75);
+  transition: opacity .3s ease, transform .4s cubic-bezier(.2,.9,.25,1.3);
+}
+.moneyCounterWrap.in { opacity: 1; transform: perspective(600px) rotateX(0deg) scale(1); }
+.moneyCounter { font-family: var(--font-display); font-size: 46px; font-weight: 800; color: #0F7A3D; letter-spacing: -.01em; }
+.moneyTrend { font-size: 11px; font-weight: 700; color: #3E8E5A; display: flex; align-items: center; gap: 4px; }
+.platformRow { display: flex; flex-direction: column; gap: 8px; width: 80%; }
+.platformChip {
+  display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid rgba(22,163,74,0.18);
+  border-radius: 12px; padding: 10px 14px; box-shadow: 0 8px 20px rgba(22,163,74,0.08);
+  font-family: var(--font-body); font-size: 11.5px; font-weight: 700; color: var(--ink);
+  opacity: 0; transform: perspective(400px) rotateX(-55deg) translateX(-14px);
+  transition: opacity .3s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.platformChip.in { opacity: 1; transform: perspective(400px) rotateX(0deg) translateX(0); }
+.platformIcon { font-size: 16px; }
+.moneyCaption { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; padding: 0 32px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
+.moneyCaption.in { opacity: 1; }
+
+/* ---------- Scene 7 : for parents ---------- */
+#s7 { background: linear-gradient(155deg, #F2EEFF, var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.parentShape { position: absolute; top: -12%; right: -14%; width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
+.parentBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
+.parentBadge.in { opacity: 1; }
+.parentIcon {
+  width: 64px; height: 64px;
+  opacity: 0; transform: perspective(500px) rotateX(-60deg) scale(0.5);
+  transition: opacity .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.parentIcon.in { opacity: 1; transform: perspective(500px) rotateX(0deg) scale(1); }
+.parentList { display: flex; flex-direction: column; gap: 9px; width: 82%; }
+.parentItem {
+  display: flex; align-items: center; gap: 9px; font-size: 11.5px; font-weight: 700; color: var(--ink);
+  opacity: 0; transform: perspective(300px) rotateY(-55deg) translateX(-10px);
+  transition: opacity .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.parentItem.in { opacity: 1; transform: perspective(300px) rotateY(0deg) translateX(0); }
+.parentCheck { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; flex: none; }
+.parentCaption { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; padding: 0 30px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
+.parentCaption.in { opacity: 1; }
+
+/* ---------- Scene 8 : pricing ---------- */
+#s8 { background: linear-gradient(160deg, var(--paper-dim), var(--paper)); display: flex; align-items: center; justify-content: center; }
 .s5shape { position: absolute; border-radius: 50%; }
 .s5shape-a { top: -12%; right: -14%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
 .s5shape-b { bottom: -10%; left: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(45,212,191,0.08), transparent 70%); }
@@ -382,8 +439,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .priceBtn { background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 11px; font-weight: 800; padding: 10px; border-radius: 10px; opacity: 0; transform: scale(0.7); transition: opacity .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1); }
 .priceBtn.in { opacity: 1; transform: scale(1); }
 
-/* ---------- Scene 6 : CTA ---------- */
-#s6 { background: radial-gradient(90% 70% at 50% 35%, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+/* ---------- Scene 9 : CTA ---------- */
+#s9 { background: radial-gradient(90% 70% at 50% 35%, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .s6shape { position: absolute; bottom: -12%; right: -10%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.09), transparent 70%); }
 .logoGlow { position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.22), transparent 70%); }
 .ring3 { position: absolute; width: 125%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(79,70,229,0.06), transparent 50%); }
@@ -420,7 +477,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="portalCore"></div>
     </div>
     <div class="portalShock" id="portalShock"></div>
-    <div class="coverReveal" id="coverReveal"><img id="coverImg" alt="Generated cover"></div>
+    <div class="tripleReveal" id="tripleReveal">
+      <div class="tripleCard tripleCard-l" id="tcardL"><img id="tcardLImg" alt="Generated cover"></div>
+      <div class="tripleCard tripleCard-c" id="tcardC"><img id="tcardCImg" alt="Generated cover"></div>
+      <div class="tripleCard tripleCard-r" id="tcardR"><img id="tcardRImg" alt="Generated cover"></div>
+    </div>
     <div class="revealCaption" id="revealCaption"></div>
 
     <!-- Scene 1 — 0-5s : the opener -->
@@ -440,7 +501,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
       </div>
     </div>
 
-    <!-- Scene 2 — 5-24s : the exact prompting UI + reveal 1 -->
+    <!-- Scene 2 — 5-15.5s : the exact prompting UI -->
     <div class="scene" id="s2">
       <div class="s2shape s2shape-a drift"></div>
       <div class="s2shape s2shape-b drift2"></div>
@@ -484,8 +545,13 @@ button { font-family: inherit; cursor: pointer; border: none; }
       </div>
     </div>
 
-    <!-- Scene 3 — 24-34s : the flipbook engine + reveal 2 -->
+    <!-- Scene 3 — 15.5-22.5s : one prompt, three finished books -->
     <div class="scene" id="s3">
+      <div class="ring2 spin"></div>
+    </div>
+
+    <!-- Scene 4 — 22.5-30s : the flipbook engine -->
+    <div class="scene" id="s4">
       <div class="ring2 spin"></div>
       <div class="featBadge" id="featBadge">Realistic Flipbook Engine</div>
       <div class="flipbook" id="flipbook">
@@ -500,8 +566,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="featCaption" id="featCaption">One click. Every device.<br>Beautifully animated pages.</div>
     </div>
 
-    <!-- Scene 4 — 34-46s : style switching + reveal 3 -->
-    <div class="scene" id="s4">
+    <!-- Scene 5 — 30-37.5s : style switching -->
+    <div class="scene" id="s5">
       <div class="s4shape drift"></div>
       <div class="featBadgeDark" id="featBadgeDark">Diverse Art Styles</div>
       <div class="styleGrid" id="styleGrid">
@@ -540,8 +606,42 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="styleCaption" id="styleCaption">Don&rsquo;t love the first result?<br>Switch styles in one click.</div>
     </div>
 
-    <!-- Scene 5 — 46-53s : pricing -->
-    <div class="scene" id="s5">
+    <!-- Scene 6 — 37.5-49.5s : make money -->
+    <div class="scene" id="s6">
+      <div class="moneyShape moneyShape-a drift"></div>
+      <div class="moneyShape moneyShape-b drift2"></div>
+      <div class="moneyBadge" id="moneyBadge">TURN CREATIVITY INTO INCOME</div>
+      <div class="moneyCounterWrap" id="moneyCounterWrap">
+        <div class="moneyCounter" id="moneyCounter">$0</div>
+        <div class="moneyTrend" id="moneyTrend">&#8599; Creators are already earning real income</div>
+      </div>
+      <div class="platformRow" id="platformRow">
+        <div class="platformChip" id="platKdp"><span class="platformIcon">&#128218;</span><span>Amazon KDP</span></div>
+        <div class="platformChip" id="platTpt"><span class="platformIcon">&#128221;</span><span>Teachers Pay Teachers</span></div>
+        <div class="platformChip" id="platFreelance"><span class="platformIcon">&#128188;</span><span>Freelance Clients</span></div>
+      </div>
+      <div class="moneyCaption" id="moneyCaption">Publish it. Sell it. Get paid for your creativity.</div>
+    </div>
+
+    <!-- Scene 7 — 49.5-58.5s : for parents -->
+    <div class="scene" id="s7">
+      <div class="parentShape drift"></div>
+      <div class="parentBadge" id="parentBadge">LOVED BY PARENTS &amp; TEACHERS</div>
+      <div class="parentIcon" id="parentIcon">
+        <svg viewBox="0 0 100 100" width="100%" height="100%">
+          <path d="M50 30 C42 16, 18 16, 12 34 C7 48, 16 60, 50 82 C84 60, 93 48, 88 34 C82 16, 58 16, 50 30 Z" fill="var(--brand-bright)"/>
+        </svg>
+      </div>
+      <div class="parentList" id="parentList">
+        <div class="parentItem" id="pitem1"><span class="parentCheck">&#10003;</span>Personalized stories, starring your kid</div>
+        <div class="parentItem" id="pitem2"><span class="parentCheck">&#10003;</span>Screen time that actually teaches</div>
+        <div class="parentItem" id="pitem3"><span class="parentCheck">&#10003;</span>Safe, ad-free, printable anytime</div>
+      </div>
+      <div class="parentCaption" id="parentCaption">Give your kids something worth their time.</div>
+    </div>
+
+    <!-- Scene 8 — 58.5-66s : pricing -->
+    <div class="scene" id="s8">
       <div class="s5shape s5shape-a drift"></div>
       <div class="s5shape s5shape-b drift2"></div>
       <div class="priceCard" id="priceCard">
@@ -559,8 +659,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       </div>
     </div>
 
-    <!-- Scene 6 — 53-60s : CTA -->
-    <div class="scene" id="s6">
+    <!-- Scene 9 — 66-72s : CTA -->
+    <div class="scene" id="s9">
       <div class="s6shape drift"></div>
       <div class="logoGlow drift" id="logoGlow"></div>
       <div class="ring3 spin"></div>
@@ -585,7 +685,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 <script>
 const AD_CONFIG = {
-  totalDurationMs: 60000,
+  totalDurationMs: 72000,
 
   copy: {
     s1cap1: 'QuickAIBook',
@@ -870,8 +970,9 @@ class Timeline {
 
   const els = {
     stage: $('stage'),
-    scenes: ['s1', 's2', 's3', 's4', 's5', 's6'].map($),
-    portalWrap: $('portalWrap'), portalShock: $('portalShock'), coverReveal: $('coverReveal'), coverImg: $('coverImg'), revealCaption: $('revealCaption'),
+    scenes: ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9'].map($),
+    portalWrap: $('portalWrap'), portalShock: $('portalShock'), revealCaption: $('revealCaption'),
+    tcardL: $('tcardL'), tcardLImg: $('tcardLImg'), tcardC: $('tcardC'), tcardCImg: $('tcardCImg'), tcardR: $('tcardR'), tcardRImg: $('tcardRImg'),
     // scene 1
     sparkCore: $('sparkCore'), sparkRing: $('sparkRing'), s1cap1: $('s1cap1'), s1cap2: $('s1cap2'),
     teaserA: $('teaserA'), teaserB: $('teaserB'), teaserC: $('teaserC'),
@@ -883,15 +984,20 @@ class Timeline {
     depthRow: $('depthRow'), depthTrack: $('depthTrack'), tintLabel: $('tintLabel'),
     tint1: $('tint1'), tint2: $('tint2'), tint3: $('tint3'), tint4: $('tint4'),
     launchBtn: $('launchBtn'),
-    // scene 3
-    featBadge: $('featBadge'), flipbook: $('flipbook'), deviceRow: $('deviceRow'), featCaption: $('featCaption'),
     // scene 4
+    featBadge: $('featBadge'), flipbook: $('flipbook'), deviceRow: $('deviceRow'), featCaption: $('featCaption'),
+    // scene 5
     featBadgeDark: $('featBadgeDark'), styleGrid: $('styleGrid'),
     thumb1: $('thumb1'), thumb2: $('thumb2'), thumb3: $('thumb3'), thumb4: $('thumb4'),
     chatUser: $('chatUser'), chatAi: $('chatAi'), styleCaption: $('styleCaption'),
-    // scene 5
-    priceCard: $('priceCard'), price1: $('price1'), price2: $('price2'), price3: $('price3'), price4: $('price4'), priceBtn: $('priceBtn'),
     // scene 6
+    moneyBadge: $('moneyBadge'), moneyCounterWrap: $('moneyCounterWrap'), moneyCounter: $('moneyCounter'), moneyTrend: $('moneyTrend'),
+    platKdp: $('platKdp'), platTpt: $('platTpt'), platFreelance: $('platFreelance'), moneyCaption: $('moneyCaption'),
+    // scene 7
+    parentBadge: $('parentBadge'), parentIcon: $('parentIcon'), pitem1: $('pitem1'), pitem2: $('pitem2'), pitem3: $('pitem3'), parentCaption: $('parentCaption'),
+    // scene 8
+    priceCard: $('priceCard'), price1: $('price1'), price2: $('price2'), price3: $('price3'), price4: $('price4'), priceBtn: $('priceBtn'),
+    // scene 9
     appIcon: $('appIcon'), logo: $('logo'), logoGlow: $('logoGlow'), logoLetters: [],
     tagline: $('tagline'), ctaPill: $('ctaPill'), trustLine: $('trustLine'),
     // chrome
@@ -961,14 +1067,18 @@ class Timeline {
   }
 
   /** Reveals `text` one character at a time with a soft tick every
-   *  other character — the "voice" of typing. */
+   *  other character — the "voice" of typing. Tracks its own interval
+   *  so a Replay mid-type can cancel the previous run before starting
+   *  a new one on the same element. */
+  let typeIntervalId = null;
   function typeChars(el, text, speedMs) {
+    if (typeIntervalId) clearInterval(typeIntervalId);
     let i = 0;
-    const iv = setInterval(() => {
+    typeIntervalId = setInterval(() => {
       el.textContent = text.slice(0, i + 1);
       if (i % 2 === 0) audio.tick();
       i++;
-      if (i >= text.length) clearInterval(iv);
+      if (i >= text.length) { clearInterval(typeIntervalId); typeIntervalId = null; }
     }, speedMs);
   }
 
@@ -1001,14 +1111,36 @@ class Timeline {
     words.forEach((w, i) => setTimeout(() => w.classList.add('in'), i * stagger));
   }
 
+  /** Counts `el`'s text up to a dollar amount with an ease-out curve.
+   *  Tagged with a generation token so a stale run from a previous
+   *  play (if Replay is clicked mid-count) can't keep writing to el. */
+  let counterGen = 0;
+  function animateCounter(el, to, durationMs) {
+    const myGen = ++counterGen;
+    const start = performance.now();
+    function tick(now) {
+      if (myGen !== counterGen) return;
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = '$' + Math.round(eased * to).toLocaleString('en-US');
+      if (t < 1) requestAnimationFrame(tick);
+      else audio.chime();
+    }
+    requestAnimationFrame(tick);
+  }
+
   function resetAll() {
+    counterGen++;
+    if (typeIntervalId) { clearInterval(typeIntervalId); typeIntervalId = null; }
     els.stage.style.transform = ''; els.stage.style.filter = '';
     els.stage.classList.remove('stage-warp');
     els.progress.style.width = '0%';
     showScene('s1');
-    off(els.portalWrap); off(els.portalShock); off(els.coverReveal); off(els.revealCaption);
+    off(els.portalWrap); off(els.portalShock); off(els.revealCaption);
     els.portalShock.classList.remove('fire');
-    els.coverImg.src = ''; els.revealCaption.textContent = '';
+    [els.tcardL, els.tcardC, els.tcardR].forEach(off);
+    els.tcardLImg.src = ''; els.tcardCImg.src = ''; els.tcardRImg.src = '';
+    els.revealCaption.textContent = '';
 
     off(els.sparkCore); off(els.sparkRing);
     els.s1cap1.textContent = ''; els.s1cap2.innerHTML = '';
@@ -1029,6 +1161,14 @@ class Timeline {
     [els.thumb1, els.thumb2, els.thumb3, els.thumb4].forEach(off);
     off(els.chatUser); off(els.chatAi); off(els.styleCaption);
 
+    off(els.moneyBadge); off(els.moneyCounterWrap); els.moneyCounter.textContent = '$0';
+    [els.platKdp, els.platTpt, els.platFreelance].forEach(off);
+    off(els.moneyCaption);
+
+    off(els.parentBadge); off(els.parentIcon);
+    [els.pitem1, els.pitem2, els.pitem3].forEach(off);
+    off(els.parentCaption);
+
     off(els.priceCard);
     [els.price1, els.price2, els.price3, els.price4].forEach(off);
     off(els.priceBtn);
@@ -1038,10 +1178,10 @@ class Timeline {
     off(els.appIcon); off(els.tagline); off(els.ctaPill); off(els.trustLine);
   }
 
-  /** Fires the shared portal + cover reveal at `startMs + offset`,
-   *  reused across scenes 2, 3 and 4 so the vortex and card don't
-   *  need separate copies in each scene's markup. */
-  function schedulePortalReveal(tl, at, offset, coverUri, captionText, cx, cy) {
+  /** Fires the shared portal, then reveals all three finished covers
+   *  fanned out together (one prompt in, three books out) rather than
+   *  one card at a time — used once, in scene 3. */
+  function scheduleTripleReveal(tl, at, offset, coverUris, captionText, cx, cy) {
     at(offset, () => {
       particles.clear();
       particles.spawnConverge(cx(), cy(), 45);
@@ -1053,8 +1193,8 @@ class Timeline {
     at(offset + 1550, () => { particles.spawnBurst(cx(), cy(), 35); });
     at(offset + 1950, () => {
       off(els.portalWrap);
-      els.coverImg.src = coverUri;
-      on(els.coverReveal);
+      els.tcardCImg.src = coverUris[1];
+      on(els.tcardC);
       els.portalShock.classList.remove('fire');
       void els.portalShock.offsetWidth;
       els.portalShock.classList.add('fire');
@@ -1064,9 +1204,10 @@ class Timeline {
       particles.clear();
       particles.spawnBurst(cx(), cy(), 55);
     });
-    at(offset + 2350, () => { snapPulse(els.coverReveal); });
-    at(offset + 2850, () => { els.revealCaption.textContent = captionText; on(els.revealCaption); });
-    at(offset + 4200, () => { snapPulse(els.coverReveal); });
+    at(offset + 2150, () => { els.tcardLImg.src = coverUris[0]; on(els.tcardL); audio.tick(); });
+    at(offset + 2350, () => { els.tcardRImg.src = coverUris[2]; on(els.tcardR); audio.tick(); });
+    at(offset + 2700, () => { [els.tcardL, els.tcardC, els.tcardR].forEach(snapPulse); });
+    at(offset + 3200, () => { els.revealCaption.textContent = captionText; on(els.revealCaption); });
   }
 
   function buildTimeline() {
@@ -1079,6 +1220,12 @@ class Timeline {
     ]);
     const styleCaptionWords = buildWordFlip(els.styleCaption, [
       { text: 'Don’t love the first result?' }, { br: true }, { text: 'Switch styles in one click.' },
+    ]);
+    const moneyCaptionWords = buildWordFlip(els.moneyCaption, [
+      { text: 'Publish it. Sell it. Get paid for your creativity.' },
+    ]);
+    const parentCaptionWords = buildWordFlip(els.parentCaption, [
+      { text: 'Give your kids something worth their time.' },
     ]);
     const taglineWords = buildWordFlip(els.tagline, [
       { text: 'Turn your' }, { text: 'vision', cls: 'accent' }, { text: 'into beautiful AI books.' },
@@ -1097,7 +1244,7 @@ class Timeline {
     tl.at(3600, () => { particles.spawnBurst(cx(), cy(), 20); });
     tl.repeat(1000, 4900, 400, () => { particles.spawnAmbient(3); });
 
-    // ---------- Scene 2 (5s - 24s) — the exact prompting UI + reveal 1 ----------
+    // ---------- Scene 2 (5s - 15.5s) — the exact prompting UI ----------
     tl.at(5000,  () => { showScene('s2'); particles.ambientDensity = 20; on(els.appHeader); });
     tl.at(5300,  () => { on(els.genBadge); });
     tl.at(5700,  () => { on(els.modeTabs); });
@@ -1127,59 +1274,91 @@ class Timeline {
       audio.click(); snapPulse(els.launchBtn);
       off(els.workCard); off(els.appHeader); off(els.genBadge); off(els.modeTabs); off(els.modeMagic);
     });
-    schedulePortalReveal(tl, (o, fn) => tl.at(13950 + o, fn), 0, AD_CONFIG.covers.hidden, 'Consistent characters · 15+ illustration styles', cx, cy);
-    tl.repeat(6900, 23800, 380, () => { particles.spawnAmbient(2); });
+    tl.at(13950, () => { showScene('s3'); particles.ambientDensity = 16; });
+    tl.repeat(6900, 13600, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 3 (24s - 34s) — the flipbook engine + reveal 2 ----------
-    tl.at(24000, () => { showScene('s3'); particles.ambientDensity = 18; off(els.coverReveal); off(els.revealCaption); });
-    tl.at(24300, () => { on(els.featBadge); });
-    tl.at(24700, () => { on(els.flipbook); });
-    tl.at(25400, () => { on(els.deviceRow); });
-    tl.at(25800, () => { snapPulse(els.flipbook); });
-    tl.at(26700, () => { on(els.featCaption); revealWordFlip(featCaptionWords, 45); });
-    tl.at(27600, () => { snapPulse(els.flipbook); particles.spawnAmbient(6); });
-    tl.at(28700, () => { off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption); });
-    schedulePortalReveal(tl, (o, fn) => tl.at(28950 + o, fn), 0, AD_CONFIG.covers.stpatricks, 'A realistic flipbook engine, on any device', cx, cy);
-    tl.repeat(24150, 33800, 380, () => { particles.spawnAmbient(2); });
+    // ---------- Scene 3 (15.5s - 22.5s) — one prompt, three finished books ----------
+    scheduleTripleReveal(
+      tl, (o, fn) => tl.at(13950 + o, fn), 0,
+      [AD_CONFIG.covers.hidden, AD_CONFIG.covers.stpatricks, AD_CONFIG.covers.grammar],
+      'One prompt. Three finished books. Consistent characters, every style.', cx, cy
+    );
+    tl.at(21200, () => { [els.tcardL, els.tcardC, els.tcardR].forEach(off); off(els.revealCaption); });
+    tl.repeat(14300, 21000, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 4 (34s - 46s) — style switching + reveal 3 ----------
-    tl.at(34000, () => { showScene('s4'); particles.ambientDensity = 14; off(els.coverReveal); off(els.revealCaption); });
-    tl.at(34300, () => { on(els.featBadgeDark); });
-    tl.at(34700, () => { on(els.styleGrid); });
-    tl.at(35100, () => { on(els.thumb1); });
-    tl.at(35250, () => { on(els.thumb2); });
-    tl.at(35400, () => { on(els.thumb3); });
-    tl.at(35550, () => { on(els.thumb4); });
-    tl.at(36100, () => { on(els.chatUser); });
-    tl.at(36700, () => { on(els.chatAi); });
-    tl.at(37300, () => { snapPulse(els.styleGrid); });
-    tl.at(38000, () => { on(els.styleCaption); revealWordFlip(styleCaptionWords, 45); particles.spawnAmbient(6); });
-    tl.at(38900, () => { snapPulse(els.chatAi); });
-    tl.at(40200, () => { off(els.featBadgeDark); off(els.styleGrid); off(els.chatUser); off(els.chatAi); off(els.styleCaption); });
-    schedulePortalReveal(tl, (o, fn) => tl.at(40450 + o, fn), 0, AD_CONFIG.covers.grammar, '200+ pages · Instant PDF export', cx, cy);
-    tl.repeat(34150, 45800, 400, () => { particles.spawnAmbient(2); });
+    // ---------- Scene 4 (22.5s - 30s) — the flipbook engine ----------
+    tl.at(22500, () => { showScene('s4'); particles.ambientDensity = 18; });
+    tl.at(22800, () => { on(els.featBadge); });
+    tl.at(23200, () => { on(els.flipbook); });
+    tl.at(23900, () => { on(els.deviceRow); });
+    tl.at(24300, () => { snapPulse(els.flipbook); });
+    tl.at(25200, () => { on(els.featCaption); revealWordFlip(featCaptionWords, 45); });
+    tl.at(26100, () => { snapPulse(els.flipbook); particles.spawnAmbient(6); });
+    tl.at(27200, () => { off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption); });
+    tl.repeat(22650, 29500, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 5 (46s - 53s) — pricing ----------
-    tl.at(46000, () => { showScene('s5'); particles.ambientDensity = 10; off(els.coverReveal); off(els.revealCaption); });
-    tl.at(46300, () => { on(els.priceCard); });
-    tl.at(46800, () => { on(els.price1); });
-    tl.at(47000, () => { on(els.price2); });
-    tl.at(47200, () => { on(els.price3); });
-    tl.at(47400, () => { on(els.price4); });
-    tl.at(47900, () => { on(els.priceBtn); });
-    tl.at(48400, () => { snapPulse(els.priceBtn); });
-    tl.at(49500, () => { particles.spawnAmbient(6); });
-    tl.at(50800, () => { snapPulse(els.priceCard); });
-    tl.repeat(46400, 52800, 450, () => { particles.spawnAmbient(2); });
+    // ---------- Scene 5 (30s - 37.5s) — style switching ----------
+    tl.at(30000, () => { showScene('s5'); particles.ambientDensity = 14; });
+    tl.at(30300, () => { on(els.featBadgeDark); });
+    tl.at(30700, () => { on(els.styleGrid); });
+    tl.at(31100, () => { on(els.thumb1); });
+    tl.at(31250, () => { on(els.thumb2); });
+    tl.at(31400, () => { on(els.thumb3); });
+    tl.at(31550, () => { on(els.thumb4); });
+    tl.at(32100, () => { on(els.chatUser); });
+    tl.at(32700, () => { on(els.chatAi); });
+    tl.at(33300, () => { snapPulse(els.styleGrid); });
+    tl.at(34000, () => { on(els.styleCaption); revealWordFlip(styleCaptionWords, 45); particles.spawnAmbient(6); });
+    tl.at(34900, () => { snapPulse(els.chatAi); });
+    tl.at(36200, () => { off(els.featBadgeDark); off(els.styleGrid); off(els.chatUser); off(els.chatAi); off(els.styleCaption); });
+    tl.repeat(30150, 37000, 400, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 6 (53s - 60s) — CTA & the shatter-assemble logo ----------
-    tl.at(53000, () => { showScene('s6'); particles.ambientDensity = 12; off(els.priceCard); on(els.appIcon); animateLogoShatter(); });
-    tl.at(53650, () => { particles.spawnBurst(cx(), cy(), 20); });
-    tl.at(54000, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
-    tl.at(54300, () => { on(els.ctaPill); });
-    tl.at(54650, () => { snapPulse(els.ctaPill); on(els.trustLine); });
-    tl.at(56500, () => { snapPulse(els.logo); });
-    tl.repeat(53300, 59900, 450, () => { particles.spawnAmbient(3); });
+    // ---------- Scene 6 (37.5s - 49.5s) — make money ----------
+    tl.at(37500, () => { showScene('s6'); particles.ambientDensity = 12; });
+    tl.at(37800, () => { on(els.moneyBadge); });
+    tl.at(38200, () => { on(els.moneyCounterWrap); animateCounter(els.moneyCounter, 2480, 1500); });
+    tl.repeat(38350, 39650, 220, () => { audio.tick(); });
+    tl.at(39900, () => { on(els.platKdp); audio.click(); });
+    tl.at(40200, () => { on(els.platTpt); audio.click(); });
+    tl.at(40500, () => { on(els.platFreelance); audio.click(); });
+    tl.at(41200, () => { snapPulse(els.moneyCounterWrap); });
+    tl.at(41800, () => { on(els.moneyCaption); revealWordFlip(moneyCaptionWords, 40); particles.spawnAmbient(6); });
+    tl.at(47500, () => { off(els.moneyBadge); off(els.moneyCounterWrap); [els.platKdp, els.platTpt, els.platFreelance].forEach(off); off(els.moneyCaption); });
+    tl.repeat(37650, 49200, 420, () => { particles.spawnAmbient(2); });
+
+    // ---------- Scene 7 (49.5s - 58.5s) — for parents ----------
+    tl.at(49500, () => { showScene('s7'); particles.ambientDensity = 10; });
+    tl.at(49800, () => { on(els.parentBadge); });
+    tl.at(50200, () => { on(els.parentIcon); });
+    tl.at(50900, () => { on(els.pitem1); });
+    tl.at(51150, () => { on(els.pitem2); });
+    tl.at(51400, () => { on(els.pitem3); });
+    tl.at(52200, () => { on(els.parentCaption); revealWordFlip(parentCaptionWords, 45); particles.spawnAmbient(6); });
+    tl.at(53000, () => { snapPulse(els.parentIcon); });
+    tl.at(56900, () => { off(els.parentBadge); off(els.parentIcon); [els.pitem1, els.pitem2, els.pitem3].forEach(off); off(els.parentCaption); });
+    tl.repeat(49650, 58200, 420, () => { particles.spawnAmbient(2); });
+
+    // ---------- Scene 8 (58.5s - 66s) — pricing ----------
+    tl.at(58500, () => { showScene('s8'); particles.ambientDensity = 10; });
+    tl.at(58800, () => { on(els.priceCard); });
+    tl.at(59300, () => { on(els.price1); });
+    tl.at(59500, () => { on(els.price2); });
+    tl.at(59700, () => { on(els.price3); });
+    tl.at(59900, () => { on(els.price4); });
+    tl.at(60400, () => { on(els.priceBtn); });
+    tl.at(60900, () => { snapPulse(els.priceBtn); });
+    tl.at(62000, () => { particles.spawnAmbient(6); });
+    tl.at(63300, () => { snapPulse(els.priceCard); });
+    tl.repeat(58900, 65300, 450, () => { particles.spawnAmbient(2); });
+
+    // ---------- Scene 9 (66s - 72s) — CTA & the shatter-assemble logo ----------
+    tl.at(66000, () => { showScene('s9'); particles.ambientDensity = 12; off(els.priceCard); on(els.appIcon); animateLogoShatter(); });
+    tl.at(66650, () => { particles.spawnBurst(cx(), cy(), 20); });
+    tl.at(67000, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
+    tl.at(67300, () => { on(els.ctaPill); });
+    tl.at(67650, () => { snapPulse(els.ctaPill); on(els.trustLine); });
+    tl.at(69500, () => { snapPulse(els.logo); });
+    tl.repeat(66300, 71900, 450, () => { particles.spawnAmbient(3); });
 
     return tl;
   }
@@ -1187,6 +1366,7 @@ class Timeline {
   let timeline = null;
 
   function startShow() {
+    if (timeline) timeline.stop();
     resetAll();
     particles.clear();
     timeline = buildTimeline();
