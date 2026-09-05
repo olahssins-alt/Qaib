@@ -299,6 +299,24 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .launchBtn { text-align: center; padding: 9px; border-radius: 10px; background: var(--paper-dim); color: #9691B8; font-family: var(--font-display); font-size: 10px; font-weight: 800; letter-spacing: .03em; transition: background .3s ease, color .3s ease; }
 .launchBtn.in { background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff; }
 
+.mouseCursor {
+  position: absolute; width: 22px; height: 22px; z-index: 5; pointer-events: none;
+  opacity: 0; transform: translate(-15%, -10%);
+  transition: opacity .25s ease, left .5s cubic-bezier(.4,0,.2,1), top .5s cubic-bezier(.4,0,.2,1);
+}
+.mouseCursor.in { opacity: 1; }
+.mouseCursor.press svg { transform: scale(0.82); }
+.mouseCursor svg { width: 100%; height: 100%; display: block; transition: transform .12s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); }
+.clickRipple {
+  position: absolute; width: 30px; height: 30px; border-radius: 50%; z-index: 5; pointer-events: none;
+  border: 2px solid #fff; opacity: 0; transform: translate(-50%,-50%) scale(0.3);
+}
+.clickRipple.fire { animation: rippleExpand .5s ease-out; }
+@keyframes rippleExpand {
+  0%   { opacity: .9; transform: translate(-50%,-50%) scale(0.3); }
+  100% { opacity: 0;  transform: translate(-50%,-50%) scale(2.4); }
+}
+
 /* ---------- Scene 3 : the triple-book reveal ---------- */
 #s3 { background: radial-gradient(90% 70% at 50% 30%, #201A4A, var(--ink) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
@@ -543,6 +561,10 @@ button { font-family: inherit; cursor: pointer; border: none; }
         </div>
         <div class="launchBtn" id="launchBtn">&#128167;&nbsp; Launch Project</div>
       </div>
+      <div class="mouseCursor" id="mouseCursor" style="left:78%; top:30%;">
+        <svg viewBox="0 0 24 24"><path d="M4 2 L4 20 L9 15.5 L12.5 21.5 L15 20 L11.5 14 L18 13.5 Z" fill="#1a1a2e" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="clickRipple" id="clickRipple" style="left:53%; top:70%;"></div>
     </div>
 
     <!-- Scene 3 — 15.5-22.5s : one prompt, three finished books -->
@@ -983,7 +1005,7 @@ class Timeline {
     vertColoring: $('vertColoring'), vertWorksheet: $('vertWorksheet'), vertStory: $('vertStory'), vertNovel: $('vertNovel'), vertStudy: $('vertStudy'),
     depthRow: $('depthRow'), depthTrack: $('depthTrack'), tintLabel: $('tintLabel'),
     tint1: $('tint1'), tint2: $('tint2'), tint3: $('tint3'), tint4: $('tint4'),
-    launchBtn: $('launchBtn'),
+    launchBtn: $('launchBtn'), mouseCursor: $('mouseCursor'), clickRipple: $('clickRipple'),
     // scene 4
     featBadge: $('featBadge'), flipbook: $('flipbook'), deviceRow: $('deviceRow'), featCaption: $('featCaption'),
     // scene 5
@@ -1154,6 +1176,9 @@ class Timeline {
     off(els.depthRow); off(els.depthTrack); off(els.tintLabel);
     [els.tint1, els.tint2, els.tint3, els.tint4].forEach(off);
     off(els.launchBtn);
+    off(els.mouseCursor); els.mouseCursor.classList.remove('press');
+    els.mouseCursor.style.left = '78%'; els.mouseCursor.style.top = '30%';
+    els.clickRipple.classList.remove('fire');
 
     off(els.featBadge); off(els.flipbook); off(els.deviceRow); off(els.featCaption);
 
@@ -1268,13 +1293,20 @@ class Timeline {
     tl.at(12050, () => { on(els.tint3); });
     tl.at(12200, () => { on(els.tint4); });
     tl.at(12700, () => { on(els.launchBtn); });
+    tl.at(12900, () => { on(els.mouseCursor); });
+    tl.at(13100, () => { els.mouseCursor.style.left = '53%'; els.mouseCursor.style.top = '70%'; });
     tl.at(13200, () => { snapPulse(els.launchBtn); });
     // CLICK — kicks off the transformation
     tl.at(13700, () => {
       audio.click(); snapPulse(els.launchBtn);
+      els.mouseCursor.classList.add('press');
+      els.clickRipple.classList.remove('fire');
+      void els.clickRipple.offsetWidth;
+      els.clickRipple.classList.add('fire');
       off(els.workCard); off(els.appHeader); off(els.genBadge); off(els.modeTabs); off(els.modeMagic);
     });
-    tl.at(13950, () => { showScene('s3'); particles.ambientDensity = 16; });
+    tl.at(13850, () => { els.mouseCursor.classList.remove('press'); });
+    tl.at(13950, () => { showScene('s3'); particles.ambientDensity = 16; off(els.mouseCursor); });
     tl.repeat(6900, 13600, 380, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 3 (15.5s - 22.5s) — one prompt, three finished books ----------
@@ -1283,22 +1315,26 @@ class Timeline {
       [AD_CONFIG.covers.hidden, AD_CONFIG.covers.stpatricks, AD_CONFIG.covers.grammar],
       'One prompt. Three finished books. Consistent characters, every style.', cx, cy
     );
-    tl.at(21200, () => { [els.tcardL, els.tcardC, els.tcardR].forEach(off); off(els.revealCaption); });
-    tl.repeat(14300, 21000, 380, () => { particles.spawnAmbient(2); });
+    tl.repeat(14300, 21600, 380, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 4 (22.5s - 30s) — the flipbook engine ----------
-    tl.at(22500, () => { showScene('s4'); particles.ambientDensity = 18; });
+    tl.at(22500, () => {
+      showScene('s4'); particles.ambientDensity = 18;
+      [els.tcardL, els.tcardC, els.tcardR].forEach(off); off(els.revealCaption);
+    });
     tl.at(22800, () => { on(els.featBadge); });
     tl.at(23200, () => { on(els.flipbook); });
     tl.at(23900, () => { on(els.deviceRow); });
     tl.at(24300, () => { snapPulse(els.flipbook); });
     tl.at(25200, () => { on(els.featCaption); revealWordFlip(featCaptionWords, 45); });
     tl.at(26100, () => { snapPulse(els.flipbook); particles.spawnAmbient(6); });
-    tl.at(27200, () => { off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption); });
-    tl.repeat(22650, 29500, 380, () => { particles.spawnAmbient(2); });
+    tl.repeat(22650, 29800, 380, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 5 (30s - 37.5s) — style switching ----------
-    tl.at(30000, () => { showScene('s5'); particles.ambientDensity = 14; });
+    tl.at(30000, () => {
+      showScene('s5'); particles.ambientDensity = 14;
+      off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption);
+    });
     tl.at(30300, () => { on(els.featBadgeDark); });
     tl.at(30700, () => { on(els.styleGrid); });
     tl.at(31100, () => { on(els.thumb1); });
@@ -1310,11 +1346,13 @@ class Timeline {
     tl.at(33300, () => { snapPulse(els.styleGrid); });
     tl.at(34000, () => { on(els.styleCaption); revealWordFlip(styleCaptionWords, 45); particles.spawnAmbient(6); });
     tl.at(34900, () => { snapPulse(els.chatAi); });
-    tl.at(36200, () => { off(els.featBadgeDark); off(els.styleGrid); off(els.chatUser); off(els.chatAi); off(els.styleCaption); });
-    tl.repeat(30150, 37000, 400, () => { particles.spawnAmbient(2); });
+    tl.repeat(30150, 37300, 400, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 6 (37.5s - 49.5s) — make money ----------
-    tl.at(37500, () => { showScene('s6'); particles.ambientDensity = 12; });
+    tl.at(37500, () => {
+      showScene('s6'); particles.ambientDensity = 12;
+      off(els.featBadgeDark); off(els.styleGrid); off(els.chatUser); off(els.chatAi); off(els.styleCaption);
+    });
     tl.at(37800, () => { on(els.moneyBadge); });
     tl.at(38200, () => { on(els.moneyCounterWrap); animateCounter(els.moneyCounter, 2480, 1500); });
     tl.repeat(38350, 39650, 220, () => { audio.tick(); });
@@ -1323,11 +1361,13 @@ class Timeline {
     tl.at(40500, () => { on(els.platFreelance); audio.click(); });
     tl.at(41200, () => { snapPulse(els.moneyCounterWrap); });
     tl.at(41800, () => { on(els.moneyCaption); revealWordFlip(moneyCaptionWords, 40); particles.spawnAmbient(6); });
-    tl.at(47500, () => { off(els.moneyBadge); off(els.moneyCounterWrap); [els.platKdp, els.platTpt, els.platFreelance].forEach(off); off(els.moneyCaption); });
-    tl.repeat(37650, 49200, 420, () => { particles.spawnAmbient(2); });
+    tl.repeat(37650, 49100, 420, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 7 (49.5s - 58.5s) — for parents ----------
-    tl.at(49500, () => { showScene('s7'); particles.ambientDensity = 10; });
+    tl.at(49500, () => {
+      showScene('s7'); particles.ambientDensity = 10;
+      off(els.moneyBadge); off(els.moneyCounterWrap); [els.platKdp, els.platTpt, els.platFreelance].forEach(off); off(els.moneyCaption);
+    });
     tl.at(49800, () => { on(els.parentBadge); });
     tl.at(50200, () => { on(els.parentIcon); });
     tl.at(50900, () => { on(els.pitem1); });
@@ -1335,11 +1375,13 @@ class Timeline {
     tl.at(51400, () => { on(els.pitem3); });
     tl.at(52200, () => { on(els.parentCaption); revealWordFlip(parentCaptionWords, 45); particles.spawnAmbient(6); });
     tl.at(53000, () => { snapPulse(els.parentIcon); });
-    tl.at(56900, () => { off(els.parentBadge); off(els.parentIcon); [els.pitem1, els.pitem2, els.pitem3].forEach(off); off(els.parentCaption); });
-    tl.repeat(49650, 58200, 420, () => { particles.spawnAmbient(2); });
+    tl.repeat(49650, 58400, 420, () => { particles.spawnAmbient(2); });
 
     // ---------- Scene 8 (58.5s - 66s) — pricing ----------
-    tl.at(58500, () => { showScene('s8'); particles.ambientDensity = 10; });
+    tl.at(58500, () => {
+      showScene('s8'); particles.ambientDensity = 10;
+      off(els.parentBadge); off(els.parentIcon); [els.pitem1, els.pitem2, els.pitem3].forEach(off); off(els.parentCaption);
+    });
     tl.at(58800, () => { on(els.priceCard); });
     tl.at(59300, () => { on(els.price1); });
     tl.at(59500, () => { on(els.price2); });
