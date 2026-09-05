@@ -108,22 +108,46 @@ async function main() {
   // badly desync frames from the page's real-time clock (performance.now()
   // keeps advancing while we're busy encoding a screenshot). Decouple frame
   // capture speed from the page's clock entirely with CDP virtual time:
-  // freeze it, advance it by exactly one frame interval, screenshot while
-  // it's frozen (however long that takes in real wall-clock time), repeat.
-  // performance.now()/rAF/CSS transitions/setTimeout all key off this same
-  // virtual clock, so the FakeCtx audio timestamps stay in lockstep too.
+  // freeze it, advance it, screenshot while it's frozen (however long that
+  // takes in real wall-clock time), repeat. performance.now()/rAF/CSS
+  // transitions/setTimeout all key off this same virtual clock, so the
+  // FakeCtx audio timestamps stay in lockstep too.
+  //
+  // Advancing a full 33.33ms in one jump is too coarse: several of the
+  // app's own timers don't land on exact multiples of that (flipBookPage's
+  // 200ms swap against a 300ms repeat interval, typeChars' 26ms ticks,
+  // etc.), so a single jump can cross two timer deadlines at once and fire
+  // them back-to-back with no frame in between — a page-flip that should
+  // hold for ~9 frames instead flashes for 2, which is exactly the kind of
+  // uneven pacing that reads as "sped up" even though total duration and
+  // per-scene checkpoints line up. Advancing in small sub-steps and only
+  // screenshotting once we cross each frame's target time gives timers a
+  // chance to resolve individually, matching real single-ms granularity.
   const client = await page.context().newCDPSession(page);
   await client.send('Emulation.setVirtualTimePolicy', { policy: 'pause' });
 
   await page.click('#playOverlay');
   const stage = await page.$('#stage');
 
-  const frameIntervalMs = 1000 / FPS;
+  const SUBSTEP_MS = 5;
+  let virtualNow = 0;
+  async function advanceVirtualTimeTo(targetMs) {
+    while (virtualNow < targetMs) {
+      const step = Math.min(SUBSTEP_MS, targetMs - virtualNow);
+      const expired = new Promise((resolve) => client.once('Emulation.virtualTimeBudgetExpired', resolve));
+      await client.send('Emulation.setVirtualTimePolicy', { policy: 'advance', budget: step });
+      await expired;
+      virtualNow += step;
+    }
+  }
+
   const t0 = Date.now();
   for (let i = 0; i < FRAME_COUNT; i++) {
-    const expired = new Promise((resolve) => client.once('Emulation.virtualTimeBudgetExpired', resolve));
-    await client.send('Emulation.setVirtualTimePolicy', { policy: 'advance', budget: frameIntervalMs });
-    await expired;
+    // Round each frame's cumulative target independently (rather than
+    // accumulating frameIntervalMs in floating point) so the 0.333ms/frame
+    // rounding error at 30fps is spread evenly instead of drifting.
+    const targetMs = Math.round(((i + 1) * 1000) / FPS);
+    await advanceVirtualTimeTo(targetMs);
     await stage.screenshot({ path: path.join(FRAMES_DIR, `frame-${String(i + 1).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 96 });
     if ((i + 1) % 100 === 0) console.log(`  frame ${i + 1}/${FRAME_COUNT} (${Math.round((Date.now() - t0) / 1000)}s real elapsed)`);
   }
