@@ -30,7 +30,7 @@ const OVERRIDE_MS = process.argv[2] ? parseInt(process.argv[2], 10) : null;
 const CAPTURE_MS = OVERRIDE_MS || (AD_DURATION_MS + TAIL_MS);
 const FRAME_COUNT = Math.round((CAPTURE_MS / 1000) * FPS);
 
-const TARGET_W = 1080;
+const TARGET_W = 2160; // 4K vertical (2160x3840, the 9:16 UHD equivalent)
 const CSS_W = 390; // #frame's fixed CSS width
 const SCALE = TARGET_W / CSS_W;
 
@@ -124,7 +124,7 @@ async function main() {
     const expired = new Promise((resolve) => client.once('Emulation.virtualTimeBudgetExpired', resolve));
     await client.send('Emulation.setVirtualTimePolicy', { policy: 'advance', budget: frameIntervalMs });
     await expired;
-    await stage.screenshot({ path: path.join(FRAMES_DIR, `frame-${String(i + 1).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 92 });
+    await stage.screenshot({ path: path.join(FRAMES_DIR, `frame-${String(i + 1).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 96 });
     if ((i + 1) % 100 === 0) console.log(`  frame ${i + 1}/${FRAME_COUNT} (${Math.round((Date.now() - t0) / 1000)}s real elapsed)`);
   }
 
