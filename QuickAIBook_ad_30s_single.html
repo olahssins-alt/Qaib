@@ -389,8 +389,51 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .featStat { position: relative; z-index: 2; font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: .04em; color: #9691B8; text-align: center; opacity: 0; transition: opacity .3s ease; }
 .featStat.in { opacity: 1; }
 
-/* ---------- Scene 5 : style switching ---------- */
-#s5 { background: linear-gradient(155deg, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+/* ---------- Scene 5 : storytelling voice ---------- */
+#s5 { background: linear-gradient(160deg, #1B1140, #0B0B1E 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+.voiceSceneShape { position: absolute; top: -10%; left: -14%; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.16), transparent 70%); }
+.voiceHeroBadge { font-family: var(--font-body); font-size: 10px; font-weight: 800; letter-spacing: .12em; color: var(--magic-a); text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
+.voiceHeroBadge.in { opacity: 1; }
+.voicePlayerCard {
+  width: 80%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px; padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  opacity: 0; transform: perspective(700px) rotateX(-45deg) scale(0.6);
+  transition: opacity .35s ease, transform .55s cubic-bezier(.2,.9,.25,1.3);
+}
+.voicePlayerCard.in { opacity: 1; transform: perspective(700px) rotateX(0deg) scale(1); }
+.voicePlayBtn {
+  position: relative; width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--magic-a), var(--magic-b));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 30px rgba(45,212,191,0.5);
+  transition: transform .15s cubic-bezier(.34,1.56,.64,1);
+}
+.voicePlayBtn.press { transform: scale(0.86); }
+.voicePlayBtn svg { width: 22px; height: 22px; margin-left: 3px; }
+.voicePlayPulse { position: absolute; inset: -8px; border-radius: 50%; border: 2px solid var(--magic-a); opacity: 0; }
+.voicePlayPulse.pulse { animation: playPulse 1.6s ease-out infinite; }
+@keyframes playPulse {
+  0%   { opacity: .7; transform: scale(0.8); }
+  100% { opacity: 0;  transform: scale(1.7); }
+}
+.voiceWave { display: flex; align-items: center; justify-content: center; gap: 3px; height: 34px; }
+.voiceWave span { display: block; width: 3.5px; border-radius: 2px; background: linear-gradient(180deg, var(--magic-a), var(--magic-b)); height: 8px; opacity: 0.5; }
+.voiceWave.playing span { animation: waveBar 0.9s ease-in-out infinite; }
+@keyframes waveBar {
+  0%, 100% { height: 6px; opacity: .5; }
+  50%      { height: 30px; opacity: 1; }
+}
+.voiceTrackInfo { width: 100%; }
+.voiceTrackTitle { font-family: var(--font-body); font-size: 10.5px; font-weight: 700; color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 8px; }
+.voiceProgress { position: relative; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); }
+.voiceProgressFill { position: absolute; inset: 0; width: 0%; border-radius: 2px; background: linear-gradient(90deg, var(--magic-a), var(--magic-b)); transition: width 4.2s linear; }
+.voiceProgressDot { position: absolute; top: 50%; left: 0%; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.8); transform: translate(-50%,-50%); transition: left 4.2s linear; }
+.voiceCaption { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #fff; text-align: center; padding: 0 34px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
+.voiceCaption.in { opacity: 1; }
+
+/* ---------- Scene 6 : style switching ---------- */
+#s6 { background: linear-gradient(155deg, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .s4shape { position: absolute; top: 8%; right: -12%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.12), transparent 70%); }
 .featBadgeDark { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
 .featBadgeDark.in { opacity: 1; }
@@ -431,8 +474,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .styleStat { font-family: var(--font-body); font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--muted); text-align: center; opacity: 0; transition: opacity .3s ease; }
 .styleStat.in { opacity: 1; }
 
-/* ---------- Scene 6 : make money ---------- */
-#s6 { background: radial-gradient(90% 70% at 50% 15%, #E9FBF2, var(--paper) 65%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+/* ---------- Scene 7 : make money ---------- */
+#s7 { background: radial-gradient(90% 70% at 50% 15%, #E9FBF2, var(--paper) 65%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .moneyShape { position: absolute; border-radius: 50%; }
 .moneyShape-a { top: -10%; left: -14%; width: 170px; height: 170px; background: radial-gradient(circle, rgba(22,163,74,0.12), transparent 70%); }
 .moneyShape-b { bottom: -8%; right: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(245,185,66,0.12), transparent 70%); }
@@ -462,8 +505,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .moneyCaption { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; padding: 0 32px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
 .moneyCaption.in { opacity: 1; }
 
-/* ---------- Scene 7 : for parents ---------- */
-#s7 { background: linear-gradient(155deg, #F2EEFF, var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+/* ---------- Scene 8 : for parents ---------- */
+#s8 { background: linear-gradient(155deg, #F2EEFF, var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .parentShape { position: absolute; top: -12%; right: -14%; width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
 .parentBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
 .parentBadge.in { opacity: 1; }
@@ -484,8 +527,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .parentCaption { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--ink); text-align: center; padding: 0 30px; line-height: 1.4; opacity: 0; transition: opacity .3s ease; }
 .parentCaption.in { opacity: 1; }
 
-/* ---------- Scene 8 : pricing ---------- */
-#s8 { background: linear-gradient(160deg, var(--paper-dim), var(--paper)); display: flex; align-items: center; justify-content: center; }
+/* ---------- Scene 9 : pricing ---------- */
+#s9 { background: linear-gradient(160deg, var(--paper-dim), var(--paper)); display: flex; align-items: center; justify-content: center; }
 .s5shape { position: absolute; border-radius: 50%; }
 .s5shape-a { top: -12%; right: -14%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
 .s5shape-b { bottom: -10%; left: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(45,212,191,0.08), transparent 70%); }
@@ -502,8 +545,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .priceBtn { background: var(--ink); color: #fff; font-family: var(--font-display); font-size: 11px; font-weight: 800; padding: 10px; border-radius: 10px; opacity: 0; transform: scale(0.7); transition: opacity .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1); }
 .priceBtn.in { opacity: 1; transform: scale(1); }
 
-/* ---------- Scene 9 : CTA ---------- */
-#s9 { background: radial-gradient(90% 70% at 50% 35%, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+/* ---------- Scene 10 : CTA ---------- */
+#s10 { background: radial-gradient(90% 70% at 50% 35%, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .s6shape { position: absolute; bottom: -12%; right: -10%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.09), transparent 70%); }
 .logoGlow { position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.22), transparent 70%); }
 .ring3 { position: absolute; width: 125%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(79,70,229,0.06), transparent 50%); }
@@ -646,8 +689,28 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="featStat" id="featStat">200+ PAGES &middot; INSTANT PDF EXPORT</div>
     </div>
 
-    <!-- Scene 5 — 30-37.5s : style switching -->
+    <!-- Scene 5 — storytelling voice -->
     <div class="scene" id="s5">
+      <div class="voiceSceneShape drift"></div>
+      <div class="voiceHeroBadge" id="voiceHeroBadge">STORYTELLING VOICE</div>
+      <div class="voicePlayerCard" id="voicePlayerCard">
+        <div class="voicePlayBtn" id="voicePlayBtn">
+          <div class="voicePlayPulse" id="voicePlayPulse"></div>
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="voiceWave" id="voiceWave">
+          <span style="animation-delay:0s"></span><span style="animation-delay:.07s"></span><span style="animation-delay:.14s"></span><span style="animation-delay:.21s"></span><span style="animation-delay:.28s"></span><span style="animation-delay:.35s"></span><span style="animation-delay:.42s"></span><span style="animation-delay:.49s"></span><span style="animation-delay:.56s"></span><span style="animation-delay:.63s"></span><span style="animation-delay:.7s"></span><span style="animation-delay:.77s"></span>
+        </div>
+        <div class="voiceTrackInfo">
+          <div class="voiceTrackTitle">Chapter 1 &middot; Read Aloud</div>
+          <div class="voiceProgress"><div class="voiceProgressFill" id="voiceProgressFill"></div><div class="voiceProgressDot" id="voiceProgressDot"></div></div>
+        </div>
+      </div>
+      <div class="voiceCaption" id="voiceCaption">Every story, read aloud in a warm, natural voice.</div>
+    </div>
+
+    <!-- Scene 6 — style switching -->
+    <div class="scene" id="s6">
       <div class="s4shape drift"></div>
       <div class="featBadgeDark" id="featBadgeDark">Diverse Art Styles</div>
       <div class="styleGrid" id="styleGrid">
@@ -683,8 +746,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="styleStat" id="styleStat">15+ ILLUSTRATION STYLES</div>
     </div>
 
-    <!-- Scene 6 — 37.5-49.5s : make money -->
-    <div class="scene" id="s6">
+    <!-- Scene 7 — make money -->
+    <div class="scene" id="s7">
       <div class="moneyShape moneyShape-a drift"></div>
       <div class="moneyShape moneyShape-b drift2"></div>
       <div class="moneyBadge" id="moneyBadge">TURN CREATIVITY INTO INCOME</div>
@@ -700,8 +763,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="moneyCaption" id="moneyCaption">Publish it. Sell it. Get paid for your creativity.</div>
     </div>
 
-    <!-- Scene 7 — 49.5-58.5s : for parents -->
-    <div class="scene" id="s7">
+    <!-- Scene 8 — for parents -->
+    <div class="scene" id="s8">
       <div class="parentShape drift"></div>
       <div class="parentBadge" id="parentBadge">LOVED BY PARENTS &amp; TEACHERS</div>
       <div class="parentIcon" id="parentIcon">
@@ -717,8 +780,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="parentCaption" id="parentCaption">Give your kids something worth their time.</div>
     </div>
 
-    <!-- Scene 8 — 58.5-66s : pricing -->
-    <div class="scene" id="s8">
+    <!-- Scene 9 — pricing -->
+    <div class="scene" id="s9">
       <div class="s5shape s5shape-a drift"></div>
       <div class="s5shape s5shape-b drift2"></div>
       <div class="priceCard" id="priceCard">
@@ -736,8 +799,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
       </div>
     </div>
 
-    <!-- Scene 9 — 66-72s : CTA -->
-    <div class="scene" id="s9">
+    <!-- Scene 10 — CTA -->
+    <div class="scene" id="s10">
       <div class="s6shape drift"></div>
       <div class="logoGlow drift" id="logoGlow"></div>
       <div class="ring3 spin"></div>
@@ -762,7 +825,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 <script>
 const AD_CONFIG = {
-  totalDurationMs: 72000,
+  totalDurationMs: 70800,
 
   copy: {
     s1hookSegments: [
@@ -1088,7 +1151,7 @@ class Timeline {
 
   const els = {
     stage: $('stage'),
-    scenes: ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9'].map($),
+    scenes: ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10'].map($),
     portalWrap: $('portalWrap'), portalShock: $('portalShock'), revealCaption: $('revealCaption'),
     allCards: [1,2,3,4,5,6,7].map(i => $('acard' + i)),
     allCardImgs: [1,2,3,4,5,6,7].map(i => $('acard' + i + 'Img')),
@@ -1107,17 +1170,21 @@ class Timeline {
     featBadge: $('featBadge'), flipbook: $('flipbook'), deviceRow: $('deviceRow'), featCaption: $('featCaption'), featStat: $('featStat'),
     voiceBadge: $('voiceBadge'), bookPageTop: $('bookPageTop'), bookPageUnder: $('bookPageUnder'), pageNum: $('pageNum'),
     // scene 5
+    voiceHeroBadge: $('voiceHeroBadge'), voicePlayerCard: $('voicePlayerCard'), voicePlayBtn: $('voicePlayBtn'),
+    voicePlayPulse: $('voicePlayPulse'), voiceWave: $('voiceWave'), voiceProgressFill: $('voiceProgressFill'),
+    voiceProgressDot: $('voiceProgressDot'), voiceCaption: $('voiceCaption'),
+    // scene 6
     featBadgeDark: $('featBadgeDark'), styleGrid: $('styleGrid'), styleStat: $('styleStat'),
     thumb1: $('thumb1'), thumb2: $('thumb2'), thumb3: $('thumb3'), thumb4: $('thumb4'),
     chatUser: $('chatUser'), chatAi: $('chatAi'), styleCaption: $('styleCaption'),
-    // scene 6
+    // scene 7
     moneyBadge: $('moneyBadge'), moneyCounterWrap: $('moneyCounterWrap'), moneyCounter: $('moneyCounter'), moneyTrend: $('moneyTrend'),
     platKdp: $('platKdp'), platTpt: $('platTpt'), platFreelance: $('platFreelance'), moneyCaption: $('moneyCaption'),
-    // scene 7
-    parentBadge: $('parentBadge'), parentIcon: $('parentIcon'), pitem1: $('pitem1'), pitem2: $('pitem2'), pitem3: $('pitem3'), parentCaption: $('parentCaption'),
     // scene 8
-    priceCard: $('priceCard'), price1: $('price1'), price2: $('price2'), price3: $('price3'), price4: $('price4'), priceBtn: $('priceBtn'),
+    parentBadge: $('parentBadge'), parentIcon: $('parentIcon'), pitem1: $('pitem1'), pitem2: $('pitem2'), pitem3: $('pitem3'), parentCaption: $('parentCaption'),
     // scene 9
+    priceCard: $('priceCard'), price1: $('price1'), price2: $('price2'), price3: $('price3'), price4: $('price4'), priceBtn: $('priceBtn'),
+    // scene 10
     appIcon: $('appIcon'), logo: $('logo'), logoGlow: $('logoGlow'), logoLetters: [],
     tagline: $('tagline'), ctaPill: $('ctaPill'), trustLine: $('trustLine'),
     // chrome
@@ -1142,6 +1209,12 @@ class Timeline {
       <div class="pageIllus" style="background:${style.illus}"></div>
       <div class="pageLine" style="width:64%"></div>
       <div class="pageLine" style="width:79%"></div>`;
+  }
+
+  /** The flipbook opens on the real cover, full-bleed inside the page
+   *  layer, before the first flip riffles into the generic pages. */
+  function renderCoverPage(uri) {
+    return `<img src="${uri}" alt="" style="position:absolute; top:-12px; left:-11px; right:-11px; bottom:-12px; width:calc(100% + 22px); height:calc(100% + 24px); object-fit:cover;">`;
   }
 
   /** Every scene change gets a short audio swish, in addition to the
@@ -1329,9 +1402,17 @@ class Timeline {
     off(els.voiceBadge);
     els.bookPageTop.classList.remove('flip');
     els.bookPageTop.style.transition = '';
-    els.bookPageTop.innerHTML = renderTextPage(FLIPBOOK_PAGE_STYLES[0]);
-    els.bookPageUnder.innerHTML = renderTextPage(FLIPBOOK_PAGE_STYLES[1]);
-    els.pageNum.textContent = FLIPBOOK_PAGE_NUMS[0];
+    els.bookPageTop.innerHTML = renderCoverPage(AD_CONFIG.covers.littleHearts);
+    els.bookPageUnder.innerHTML = renderTextPage(FLIPBOOK_PAGE_STYLES[0]);
+    els.pageNum.textContent = 'Cover';
+
+    off(els.voiceHeroBadge); off(els.voicePlayerCard);
+    els.voicePlayBtn.classList.remove('press'); els.voicePlayPulse.classList.remove('pulse'); els.voiceWave.classList.remove('playing');
+    els.voiceProgressFill.style.transition = 'none'; els.voiceProgressDot.style.transition = 'none';
+    els.voiceProgressFill.style.width = '0%'; els.voiceProgressDot.style.left = '0%';
+    void els.voiceProgressFill.offsetWidth;
+    els.voiceProgressFill.style.transition = ''; els.voiceProgressDot.style.transition = '';
+    off(els.voiceCaption);
 
     off(els.featBadgeDark); off(els.styleGrid);
     [els.thumb1, els.thumb2, els.thumb3, els.thumb4].forEach(off);
@@ -1409,6 +1490,9 @@ class Timeline {
     const styleCaptionWords = buildWordFlip(els.styleCaption, [
       { text: 'Don’t love the first result?' }, { br: true }, { text: 'Switch styles in one click.' },
     ]);
+    const voiceCaptionWords = buildWordFlip(els.voiceCaption, [
+      { text: 'Every story, read aloud in a warm, natural voice.' },
+    ]);
     const moneyCaptionWords = buildWordFlip(els.moneyCaption, [
       { text: 'Publish it. Sell it. Get paid for your creativity.' },
     ]);
@@ -1475,106 +1559,133 @@ class Timeline {
     tl.at(13950, () => { showScene('s3'); particles.ambientDensity = 16; off(els.mouseCursor); });
     tl.repeat(6900, 13600, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 3 (15.5s - 22.5s) — one prompt, every kind of book ----------
+    // ---------- Scene 3 (13.95s - 21.7s) — one prompt, every kind of book ----------
     scheduleAllReveal(
       tl, (o, fn) => tl.at(13950 + o, fn), 0,
       [AD_CONFIG.covers.hidden, AD_CONFIG.covers.stpatricks, AD_CONFIG.covers.grammar,
        AD_CONFIG.covers.littleHearts, AD_CONFIG.covers.discipline, AD_CONFIG.covers.preschool, AD_CONFIG.covers.maxLucky],
       'One prompt. Every kind of book. Any topic, any style.', cx, cy
     );
-    tl.repeat(14300, 21600, 380, () => { particles.spawnAmbient(2); });
+    tl.repeat(14300, 20800, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 4 (22.5s - 30s) — the flipbook engine ----------
-    tl.at(22500, () => {
+    // ---------- Scene 4 (21.7s - 29.2s) — the flipbook engine: cover first, then pages ----------
+    tl.at(21700, () => {
       showScene('s4'); particles.ambientDensity = 18;
       els.allCards.forEach(off);
       off(els.revealCaption);
     });
-    tl.at(22800, () => { on(els.featBadge); });
-    tl.at(23200, () => { onVoiced(els.flipbook); });
-    tl.at(23600, () => { on(els.voiceBadge); });
-    tl.at(23900, () => { on(els.deviceRow); });
-    tl.at(24300, () => { snapPulse(els.flipbook); });
-    // Riffle fast through the pages — quick enough that no single page
-    // is meant to be read, just felt as "beautifully animated pages".
-    tl.repeat(24700, 28900, 300, () => { flipBookPage(FLIPBOOK_PAGE_STYLES, FLIPBOOK_PAGE_NUMS); });
-    tl.at(25200, () => { on(els.featCaption); revealWordFlip(featCaptionWords, 45); });
-    tl.at(26100, () => { particles.spawnAmbient(6); });
-    tl.at(26500, () => { on(els.featStat); });
-    tl.at(27400, () => { snapPulse(els.flipbook); });
-    tl.repeat(22650, 29800, 380, () => { particles.spawnAmbient(2); });
+    tl.at(22000, () => { on(els.featBadge); });
+    tl.at(22400, () => { onVoiced(els.flipbook); });
+    tl.at(22800, () => { on(els.voiceBadge); });
+    tl.at(23100, () => { on(els.deviceRow); });
+    tl.at(23500, () => { snapPulse(els.flipbook); });
+    // First flip peels the real cover away — then a fast riffle through
+    // generic pages, quick enough that no single page is meant to be
+    // read, just felt as "beautifully animated pages".
+    tl.repeat(24300, 28100, 300, () => { flipBookPage(FLIPBOOK_PAGE_STYLES, FLIPBOOK_PAGE_NUMS); });
+    tl.at(24900, () => { on(els.featCaption); revealWordFlip(featCaptionWords, 45); });
+    tl.at(25800, () => { particles.spawnAmbient(6); });
+    tl.at(26200, () => { on(els.featStat); });
+    tl.at(27100, () => { snapPulse(els.flipbook); });
+    tl.repeat(21850, 29000, 380, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 5 (30s - 37.5s) — style switching ----------
-    tl.at(30000, () => {
-      showScene('s5'); particles.ambientDensity = 14;
-      off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption); off(els.featStat);
+    // ---------- Scene 5 (29.2s - 35.2s) — storytelling voice, a dedicated beat ----------
+    tl.at(29200, () => {
+      showScene('s5'); particles.ambientDensity = 10;
+      off(els.flipbook); off(els.deviceRow); off(els.featBadge); off(els.featCaption); off(els.featStat); off(els.voiceBadge);
     });
-    tl.at(30300, () => { on(els.featBadgeDark); });
-    tl.at(30700, () => { onVoiced(els.styleGrid); });
-    tl.at(31100, () => { on(els.thumb1); });
-    tl.at(31250, () => { on(els.thumb2); });
-    tl.at(31400, () => { on(els.thumb3); });
-    tl.at(31550, () => { on(els.thumb4); });
-    tl.at(32100, () => { on(els.chatUser); });
-    tl.at(32700, () => { on(els.chatAi); });
-    tl.at(33300, () => { snapPulse(els.styleGrid); });
-    tl.at(34000, () => { on(els.styleCaption); revealWordFlip(styleCaptionWords, 45); particles.spawnAmbient(6); });
-    tl.at(34900, () => { snapPulse(els.chatAi); on(els.styleStat); });
-    tl.repeat(30150, 37300, 400, () => { particles.spawnAmbient(2); });
-
-    // ---------- Scene 6 (37.5s - 49.5s) — make money ----------
-    tl.at(37500, () => {
-      showScene('s6'); particles.ambientDensity = 12;
-      off(els.featBadgeDark); off(els.styleGrid); off(els.chatUser); off(els.chatAi); off(els.styleCaption); off(els.styleStat);
+    tl.at(29450, () => { on(els.voiceHeroBadge); });
+    tl.at(29850, () => { onVoiced(els.voicePlayerCard); particles.spawnBurst(cx(), cy(), 25); });
+    // Tap the play button — it presses, then the ring pulses, the
+    // waveform comes alive, and the track visibly plays out.
+    tl.at(30450, () => { els.voicePlayBtn.classList.add('press'); audio.click(); });
+    tl.at(30620, () => {
+      els.voicePlayBtn.classList.remove('press');
+      els.voicePlayPulse.classList.add('pulse');
+      els.voiceWave.classList.add('playing');
+      els.voiceProgressFill.style.width = '100%';
+      els.voiceProgressDot.style.left = '100%';
+      glitchCut(45);
     });
-    tl.at(37800, () => { on(els.moneyBadge); });
-    tl.at(38200, () => { onVoiced(els.moneyCounterWrap); animateCounter(els.moneyCounter, 2480, 1500); });
-    tl.repeat(38350, 39650, 220, () => { audio.tick(); });
-    tl.at(39900, () => { on(els.platKdp); audio.click(); });
-    tl.at(40200, () => { on(els.platTpt); audio.click(); });
-    tl.at(40500, () => { on(els.platFreelance); audio.click(); });
-    tl.at(41200, () => { snapPulse(els.moneyCounterWrap); });
-    tl.at(41800, () => { on(els.moneyCaption); revealWordFlip(moneyCaptionWords, 40); particles.spawnAmbient(6); });
-    tl.repeat(37650, 49100, 420, () => { particles.spawnAmbient(2); });
+    tl.at(31300, () => { on(els.voiceCaption); revealWordFlip(voiceCaptionWords, 40); });
+    tl.at(32200, () => { particles.spawnAmbient(6); });
+    tl.at(33800, () => { snapPulse(els.voicePlayerCard); });
+    tl.repeat(29500, 34900, 420, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 7 (49.5s - 58.5s) — for parents ----------
-    tl.at(49500, () => {
-      showScene('s7'); particles.ambientDensity = 10;
+    // ---------- Scene 6 (35.2s - 42s) — style switching ----------
+    tl.at(35200, () => {
+      showScene('s6'); particles.ambientDensity = 14;
+      off(els.voiceHeroBadge); off(els.voicePlayerCard);
+      els.voicePlayBtn.classList.remove('press'); els.voicePlayPulse.classList.remove('pulse'); els.voiceWave.classList.remove('playing');
+      off(els.voiceCaption);
+    });
+    tl.at(35470, () => { on(els.featBadgeDark); });
+    tl.at(35850, () => { onVoiced(els.styleGrid); });
+    tl.at(36250, () => { on(els.thumb1); });
+    tl.at(36400, () => { on(els.thumb2); });
+    tl.at(36550, () => { on(els.thumb3); });
+    tl.at(36700, () => { on(els.thumb4); });
+    tl.at(37250, () => { on(els.chatUser); });
+    tl.at(37850, () => { on(els.chatAi); });
+    tl.at(38450, () => { snapPulse(els.styleGrid); });
+    tl.at(39150, () => { on(els.styleCaption); revealWordFlip(styleCaptionWords, 45); particles.spawnAmbient(6); });
+    tl.at(40050, () => { snapPulse(els.chatAi); on(els.styleStat); });
+    tl.repeat(35350, 41600, 400, () => { particles.spawnAmbient(2); });
+
+    // ---------- Scene 7 (42s - 50.5s) — make money ----------
+    tl.at(42000, () => {
+      showScene('s7'); particles.ambientDensity = 12;
+      off(els.featBadgeDark); off(els.styleGrid); [els.thumb1, els.thumb2, els.thumb3, els.thumb4].forEach(off);
+      off(els.chatUser); off(els.chatAi); off(els.styleCaption); off(els.styleStat);
+    });
+    tl.at(42300, () => { on(els.moneyBadge); });
+    tl.at(42700, () => { onVoiced(els.moneyCounterWrap); animateCounter(els.moneyCounter, 2480, 1500); });
+    tl.repeat(42850, 44150, 220, () => { audio.tick(); });
+    tl.at(44400, () => { on(els.platKdp); audio.click(); });
+    tl.at(44700, () => { on(els.platTpt); audio.click(); });
+    tl.at(45000, () => { on(els.platFreelance); audio.click(); });
+    tl.at(45700, () => { snapPulse(els.moneyCounterWrap); });
+    tl.at(46300, () => { on(els.moneyCaption); revealWordFlip(moneyCaptionWords, 40); particles.spawnAmbient(6); });
+    tl.repeat(42150, 50100, 420, () => { particles.spawnAmbient(2); });
+
+    // ---------- Scene 8 (50.5s - 58s) — for parents ----------
+    tl.at(50500, () => {
+      showScene('s8'); particles.ambientDensity = 10;
       off(els.moneyBadge); off(els.moneyCounterWrap); [els.platKdp, els.platTpt, els.platFreelance].forEach(off); off(els.moneyCaption);
     });
-    tl.at(49800, () => { on(els.parentBadge); });
-    tl.at(50200, () => { onVoiced(els.parentIcon); });
-    tl.at(50900, () => { on(els.pitem1); });
-    tl.at(51150, () => { on(els.pitem2); });
-    tl.at(51400, () => { on(els.pitem3); });
-    tl.at(52200, () => { on(els.parentCaption); revealWordFlip(parentCaptionWords, 45); particles.spawnAmbient(6); });
-    tl.at(53000, () => { snapPulse(els.parentIcon); });
-    tl.repeat(49650, 58400, 420, () => { particles.spawnAmbient(2); });
+    tl.at(50800, () => { on(els.parentBadge); });
+    tl.at(51200, () => { onVoiced(els.parentIcon); });
+    tl.at(51900, () => { on(els.pitem1); });
+    tl.at(52150, () => { on(els.pitem2); });
+    tl.at(52400, () => { on(els.pitem3); });
+    tl.at(53200, () => { on(els.parentCaption); revealWordFlip(parentCaptionWords, 45); particles.spawnAmbient(6); });
+    tl.at(54000, () => { snapPulse(els.parentIcon); });
+    tl.repeat(50650, 57100, 420, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 8 (58.5s - 66s) — pricing ----------
-    tl.at(58500, () => {
-      showScene('s8'); particles.ambientDensity = 10;
+    // ---------- Scene 9 (58s - 64.8s) — pricing ----------
+    tl.at(58000, () => {
+      showScene('s9'); particles.ambientDensity = 10;
       off(els.parentBadge); off(els.parentIcon); [els.pitem1, els.pitem2, els.pitem3].forEach(off); off(els.parentCaption);
     });
-    tl.at(58800, () => { onVoiced(els.priceCard); });
-    tl.at(59300, () => { on(els.price1); });
-    tl.at(59500, () => { on(els.price2); });
-    tl.at(59700, () => { on(els.price3); });
-    tl.at(59900, () => { on(els.price4); });
-    tl.at(60400, () => { on(els.priceBtn); });
-    tl.at(60900, () => { snapPulse(els.priceBtn); });
-    tl.at(62000, () => { particles.spawnAmbient(6); });
-    tl.at(63300, () => { snapPulse(els.priceCard); });
-    tl.repeat(58900, 65300, 450, () => { particles.spawnAmbient(2); });
+    tl.at(58300, () => { onVoiced(els.priceCard); });
+    tl.at(58800, () => { on(els.price1); });
+    tl.at(59000, () => { on(els.price2); });
+    tl.at(59200, () => { on(els.price3); });
+    tl.at(59400, () => { on(els.price4); });
+    tl.at(59900, () => { on(els.priceBtn); });
+    tl.at(60400, () => { snapPulse(els.priceBtn); });
+    tl.at(61500, () => { particles.spawnAmbient(6); });
+    tl.at(62800, () => { snapPulse(els.priceCard); });
+    tl.repeat(58400, 64100, 450, () => { particles.spawnAmbient(2); });
 
-    // ---------- Scene 9 (66s - 72s) — CTA & the shatter-assemble logo ----------
-    tl.at(66000, () => { showScene('s9'); particles.ambientDensity = 12; off(els.priceCard); onVoiced(els.appIcon); animateLogoShatter(); });
-    tl.at(66650, () => { particles.spawnBurst(cx(), cy(), 20); });
-    tl.at(67000, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
-    tl.at(67300, () => { onVoiced(els.ctaPill); });
-    tl.at(67650, () => { snapPulse(els.ctaPill); on(els.trustLine); });
-    tl.at(69500, () => { snapPulse(els.logo); });
-    tl.repeat(66300, 71900, 450, () => { particles.spawnAmbient(3); });
+    // ---------- Scene 10 (64.8s - 70.8s) — CTA & the shatter-assemble logo ----------
+    tl.at(64800, () => { showScene('s10'); particles.ambientDensity = 12; off(els.priceCard); onVoiced(els.appIcon); animateLogoShatter(); });
+    tl.at(65450, () => { particles.spawnBurst(cx(), cy(), 20); });
+    tl.at(65800, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
+    tl.at(66100, () => { onVoiced(els.ctaPill); });
+    tl.at(66450, () => { snapPulse(els.ctaPill); on(els.trustLine); });
+    tl.at(68300, () => { snapPulse(els.logo); });
+    tl.repeat(65100, 70700, 450, () => { particles.spawnAmbient(3); });
 
     return tl;
   }
