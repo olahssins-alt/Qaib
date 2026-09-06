@@ -129,7 +129,7 @@ async function main() {
   await page.click('#playOverlay');
   const stage = await page.$('#stage');
 
-  const SUBSTEP_MS = 5;
+  const SUBSTEP_MS = 1;
   let virtualNow = 0;
   async function advanceVirtualTimeTo(targetMs) {
     while (virtualNow < targetMs) {
