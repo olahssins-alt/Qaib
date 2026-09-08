@@ -569,6 +569,9 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .ctaPill.in { opacity: 1; transform: translateY(0); }
 .trustLine { font-family: var(--font-body); font-size: 10.5px; font-weight: 700; color: #9691B8; opacity: 0; transition: opacity .45s ease; }
 .trustLine.in { opacity: 1; }
+.websiteUrl { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--brand); letter-spacing: .01em; opacity: 0; transform: translateY(6px); transition: opacity .45s ease, transform .45s ease; margin-top: 2px; }
+.websiteUrl.in { opacity: 1; transform: translateY(0); }
+.websiteUrl::after { content: ''; display: block; height: 2px; width: 60%; margin: 3px auto 0; background: linear-gradient(90deg, var(--magic-a), var(--brand)); border-radius: 2px; opacity: .6; }
 
 </style>
 </head>
@@ -814,6 +817,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
       <div class="tagline" id="tagline">Turn your <span class="accent">vision</span> into beautiful AI books.</div>
       <div class="ctaPill pulseGlow" id="ctaPill">Start creating free</div>
       <div class="trustLine" id="trustLine">No credit card needed &middot; 5 free credits</div>
+      <div class="websiteUrl" id="websiteUrl">quickaibook.com</div>
     </div>
 
     <div id="playOverlay">
@@ -1191,7 +1195,7 @@ class Timeline {
     priceCard: $('priceCard'), price1: $('price1'), price2: $('price2'), price3: $('price3'), price4: $('price4'), priceBtn: $('priceBtn'), priceProof: $('priceProof'),
     // scene 10
     appIcon: $('appIcon'), logo: $('logo'), logoGlow: $('logoGlow'), logoLetters: [],
-    tagline: $('tagline'), ctaPill: $('ctaPill'), trustLine: $('trustLine'),
+    tagline: $('tagline'), ctaPill: $('ctaPill'), trustLine: $('trustLine'), websiteUrl: $('websiteUrl'),
     // chrome
     progress: $('progress'), playOverlay: $('playOverlay'), replayBtn: $('replayBtn'),
   };
@@ -1438,7 +1442,7 @@ class Timeline {
 
     els.logoGlow.classList.remove('impact');
     buildLogoLetters();
-    off(els.appIcon); off(els.tagline); off(els.ctaPill); off(els.trustLine);
+    off(els.appIcon); off(els.tagline); off(els.ctaPill); off(els.trustLine); off(els.websiteUrl);
   }
 
   /** Fires the shared portal, then cascades every real cover onto
@@ -1692,6 +1696,7 @@ class Timeline {
     tl.at(67200, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
     tl.at(67500, () => { onVoiced(els.ctaPill); });
     tl.at(67850, () => { snapPulse(els.ctaPill); on(els.trustLine); });
+    tl.at(68300, () => { on(els.websiteUrl); });
     tl.at(69700, () => { snapPulse(els.logo); });
     tl.repeat(66500, 72100, 450, () => { particles.spawnAmbient(3); });
 
