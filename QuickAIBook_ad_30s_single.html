@@ -72,6 +72,7 @@ canvas#fx {
 }
 .stage-warp { animation: worldFlash .55s ease; }
 
+
 .progressTrack {
   position: absolute; top: 14px; left: 14px; right: 14px; height: 4px;
   background: rgba(255, 255, 255, 0.18);
@@ -110,13 +111,13 @@ button { font-family: inherit; cursor: pointer; border: none; }
 }
 .drift  { animation: drift 5s ease-in-out infinite; }
 @keyframes drift {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(6px, -9px); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(10px, -14px) scale(1.1); }
 }
 .drift2 { animation: drift2 6.5s ease-in-out infinite; }
 @keyframes drift2 {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(-8px, 7px); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-12px, 10px) scale(0.92); }
 }
 .spin { animation: spin 16s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -144,7 +145,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 #stage { will-change: transform, filter; }
 
 @media (prefers-reduced-motion: reduce) {
-  .breathe, .breatheSlow, .drift, .drift2, .spin, .blink { animation: none !important; }
+  .breathe, .breatheSlow, .drift, .drift2, .spin, .blink, .pulseGlow { animation: none !important; }
+  .pulseGlow::after { display: none; }
 }
 
 /* ---------- shared: the portal + triple-book reveal (used by scene 3) ---------- */
@@ -209,9 +211,9 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ---------- Scene 1 : the opener ---------- */
 #s1 { background: radial-gradient(120% 80% at 50% 30%, #1A1440, var(--ink) 65%); }
-.s1shape { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.18), transparent 70%); }
-.s1shape-a { top: 6%; left: -14%; width: 160px; height: 160px; }
-.s1shape-b { bottom: 14%; right: -12%; width: 190px; height: 190px; background: radial-gradient(circle, rgba(45,212,191,0.1), transparent 70%); }
+.s1shape { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(139,127,255,0.28), rgba(79,70,229,0.14) 45%, transparent 72%); }
+.s1shape-a { top: 6%; left: -16%; width: 220px; height: 220px; }
+.s1shape-b { bottom: 12%; right: -16%; width: 260px; height: 260px; background: radial-gradient(circle, rgba(45,212,191,0.22), rgba(59,130,246,0.1) 50%, transparent 72%); }
 .sparkWrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .sparkCore {
   width: 64px; height: 64px; border-radius: 50%;
@@ -274,8 +276,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 }
 .ring { position: absolute; top: -22%; left: -22%; width: 62%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, rgba(255,255,255,0.08), transparent 40%); }
 .s2shape { position: absolute; border-radius: 50%; }
-.s2shape-a { bottom: -10%; right: -14%; width: 170px; height: 170px; background: radial-gradient(circle, rgba(45,212,191,0.14), transparent 70%); }
-.s2shape-b { top: 30%; left: -16%; width: 130px; height: 130px; background: radial-gradient(circle, rgba(245,185,66,0.1), transparent 70%); }
+.s2shape-a { bottom: -12%; right: -16%; width: 240px; height: 240px; background: radial-gradient(circle, rgba(45,212,191,0.24), rgba(59,130,246,0.1) 50%, transparent 72%); }
+.s2shape-b { top: 28%; left: -18%; width: 190px; height: 190px; background: radial-gradient(circle, rgba(245,185,66,0.2), transparent 72%); }
 
 .appHeader { display: flex; align-items: center; gap: 7px; position: relative; z-index: 2; opacity: 0; transition: opacity .45s ease; }
 .appHeader.in { opacity: 1; }
@@ -397,7 +399,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ---------- Scene 5 : storytelling voice ---------- */
 #s5 { background: linear-gradient(160deg, #1B1140, #0B0B1E 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-.voiceSceneShape { position: absolute; top: -10%; left: -14%; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.16), transparent 70%); }
+.voiceSceneShape { position: absolute; top: -12%; left: -18%; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.26), rgba(139,127,255,0.12) 50%, transparent 72%); }
 .voiceHeroBadge { font-family: var(--font-body); font-size: 10px; font-weight: 800; letter-spacing: .12em; color: var(--magic-a); text-transform: uppercase; opacity: 0; transition: opacity .45s ease; }
 .voiceHeroBadge.in { opacity: 1; }
 .voicePlayerCard {
@@ -440,7 +442,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ---------- Scene 6 : style switching ---------- */
 #s6 { background: linear-gradient(155deg, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-.s4shape { position: absolute; top: 8%; right: -12%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.12), transparent 70%); }
+.s4shape { position: absolute; top: 6%; right: -16%; width: 230px; height: 230px; border-radius: 50%; background: radial-gradient(circle, rgba(139,127,255,0.24), rgba(79,70,229,0.1) 50%, transparent 72%); }
 .featBadgeDark { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .45s ease; }
 .featBadgeDark.in { opacity: 1; }
 .styleGrid { width: 84%; opacity: 0; transform: perspective(700px) rotateX(-40deg) scale(0.7); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.9,.25,1.3); }
@@ -483,8 +485,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 /* ---------- Scene 7 : make money ---------- */
 #s7 { background: radial-gradient(90% 70% at 50% 15%, #E9FBF2, var(--paper) 65%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .moneyShape { position: absolute; border-radius: 50%; }
-.moneyShape-a { top: -10%; left: -14%; width: 170px; height: 170px; background: radial-gradient(circle, rgba(22,163,74,0.12), transparent 70%); }
-.moneyShape-b { bottom: -8%; right: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(245,185,66,0.12), transparent 70%); }
+.moneyShape-a { top: -12%; left: -16%; width: 240px; height: 240px; background: radial-gradient(circle, rgba(45,212,191,0.2), rgba(22,163,74,0.14) 50%, transparent 72%); }
+.moneyShape-b { bottom: -10%; right: -16%; width: 210px; height: 210px; background: radial-gradient(circle, rgba(245,185,66,0.22), transparent 72%); }
 .moneyBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: #16A34A; text-transform: uppercase; opacity: 0; transition: opacity .45s ease; }
 .moneyBadge.in { opacity: 1; }
 .moneyCounterWrap {
@@ -513,7 +515,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ---------- Scene 8 : for parents ---------- */
 #s8 { background: linear-gradient(155deg, #F2EEFF, var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-.parentShape { position: absolute; top: -12%; right: -14%; width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
+.parentShape { position: absolute; top: -14%; right: -18%; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, rgba(139,127,255,0.22), rgba(79,70,229,0.1) 50%, transparent 72%); }
 .parentBadge { font-family: var(--font-body); font-size: 9.5px; font-weight: 800; letter-spacing: .09em; color: var(--brand-deep); text-transform: uppercase; opacity: 0; transition: opacity .45s ease; }
 .parentBadge.in { opacity: 1; }
 .parentIcon {
@@ -536,8 +538,8 @@ button { font-family: inherit; cursor: pointer; border: none; }
 /* ---------- Scene 9 : pricing ---------- */
 #s9 { background: linear-gradient(160deg, var(--paper-dim), var(--paper)); display: flex; align-items: center; justify-content: center; }
 .s5shape { position: absolute; border-radius: 50%; }
-.s5shape-a { top: -12%; right: -14%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(79,70,229,0.1), transparent 70%); }
-.s5shape-b { bottom: -10%; left: -12%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(45,212,191,0.08), transparent 70%); }
+.s5shape-a { top: -14%; right: -18%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(139,127,255,0.22), rgba(79,70,229,0.1) 50%, transparent 72%); }
+.s5shape-b { bottom: -12%; left: -16%; width: 210px; height: 210px; background: radial-gradient(circle, rgba(45,212,191,0.18), transparent 72%); }
 .priceCard { width: 78%; background: #fff; border-radius: 18px; padding: 20px 18px; text-align: center; box-shadow: 0 26px 54px rgba(0,0,0,0.18); opacity: 0; transform: perspective(700px) rotateX(-35deg) scale(0.7); transition: opacity .45s ease, transform .6s cubic-bezier(.2,.9,.25,1.3); }
 .priceCard.in { opacity: 1; transform: perspective(700px) rotateX(0deg) scale(1); }
 .priceTier { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--ink); }
@@ -555,7 +557,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 /* ---------- Scene 10 : CTA ---------- */
 #s10 { background: radial-gradient(90% 70% at 50% 35%, var(--paper-dim), var(--paper)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-.s6shape { position: absolute; bottom: -12%; right: -10%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.09), transparent 70%); }
+.s6shape { position: absolute; bottom: -14%; right: -14%; width: 230px; height: 230px; border-radius: 50%; background: radial-gradient(circle, rgba(45,212,191,0.2), rgba(139,127,255,0.1) 50%, transparent 72%); }
 .logoGlow { position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.22), transparent 70%); }
 .ring3 { position: absolute; width: 125%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 0deg, transparent, rgba(79,70,229,0.06), transparent 50%); }
 .appIcon { width: 46px; height: 46px; border-radius: 13px; overflow: hidden; box-shadow: 0 10px 22px rgba(79,70,229,0.35); opacity: 0; transform: scale(0.5); transition: opacity .45s ease, transform .45s cubic-bezier(.34,1.56,.64,1); }
@@ -570,8 +572,24 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .tagline { font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--muted); text-align: center; padding: 0 40px; opacity: 0; transform: translateY(6px); transition: opacity .45s ease, transform .45s ease; }
 .tagline.in { opacity: 1; transform: translateY(0); }
 .tagline .accent { color: var(--brand); font-style: italic; font-weight: 700; }
-.ctaPill { display: inline-flex; padding: 14px 30px; border-radius: 26px; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff; font-family: var(--font-display); font-size: 13.5px; font-weight: 800; position: relative; z-index: 2; opacity: 0; transform: translateY(10px); transition: opacity .53s ease, transform .53s ease; }
+.ctaPill { display: inline-flex; padding: 14px 30px; border-radius: 26px; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: #fff; font-family: var(--font-display); font-size: 13.5px; font-weight: 800; position: relative; z-index: 2; overflow: hidden; opacity: 0; transform: translateY(10px); transition: opacity .53s ease, transform .53s ease; }
 .ctaPill.in { opacity: 1; transform: translateY(0); }
+.pulseGlow { animation: ctaPulseGlow 1.7s ease-in-out infinite; }
+@keyframes ctaPulseGlow {
+  0%, 100% { box-shadow: 0 10px 26px rgba(79,70,229,0.35), 0 0 0 0 rgba(139,127,255,0.45); }
+  50%      { box-shadow: 0 14px 36px rgba(79,70,229,0.5), 0 0 0 9px rgba(139,127,255,0); }
+}
+.pulseGlow::after {
+  content: ''; position: absolute; inset: 0 auto 0 -60%; width: 40%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: skewX(-20deg); pointer-events: none;
+  animation: ctaShimmer 2.8s ease-in-out infinite;
+}
+@keyframes ctaShimmer {
+  0%   { left: -60%; }
+  35%  { left: 130%; }
+  100% { left: 130%; }
+}
 .trustLine { font-family: var(--font-body); font-size: 10.5px; font-weight: 700; color: #9691B8; opacity: 0; transition: opacity .45s ease; }
 .trustLine.in { opacity: 1; }
 .websiteUrl { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--brand); letter-spacing: .01em; opacity: 0; transform: translateY(6px); transition: opacity .45s ease, transform .45s ease; margin-top: 2px; }
@@ -1234,9 +1252,27 @@ class Timeline {
 
   /** Every scene change gets a short audio swish, in addition to the
    *  CSS opacity crossfade. */
+  /** A quick scale+brightness "impact" on every cut, using an instant
+   *  inline-style jump (like glitchCut) rather than a CSS @keyframes
+   *  animation on #stage — a real CSS animation on the screenshotted
+   *  element itself can keep ticking on the compositor thread in real
+   *  time even while CDP virtual time is frozen for capture, which
+   *  hangs Playwright's element-screenshot "wait for stable" check. */
+  function scenePunch() {
+    if (reduceMotion) return;
+    els.stage.style.transition = 'none';
+    els.stage.style.transform = 'scale(1.045)';
+    els.stage.style.filter = 'brightness(1.18)';
+    setTimeout(() => {
+      els.stage.style.transform = '';
+      els.stage.style.filter = '';
+    }, 130);
+  }
+
   function showScene(id) {
     audio.transition();
     els.scenes.forEach(s => s.classList.toggle('active', s.id === id));
+    scenePunch();
   }
 
   function glitchCut(durationMs = 70) {
@@ -1701,7 +1737,7 @@ class Timeline {
     tl.at(66200, () => { showScene('s10'); particles.ambientDensity = 12; off(els.priceCard); onVoiced(els.appIcon); animateLogoShatter(); });
     tl.at(66850, () => { particles.spawnBurst(cx(), cy(), 20); });
     tl.at(67200, () => { on(els.tagline); revealWordFlip(taglineWords, 55); });
-    tl.at(67500, () => { onVoiced(els.ctaPill); });
+    tl.at(67500, () => { onVoiced(els.ctaPill); particles.spawnBurst(cx(), cy(), 25); });
     tl.at(67850, () => { snapPulse(els.ctaPill); on(els.trustLine); });
     tl.at(68300, () => { on(els.websiteUrl); });
     tl.at(69700, () => { snapPulse(els.logo); });
