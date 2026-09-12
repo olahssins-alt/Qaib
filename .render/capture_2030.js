@@ -24,7 +24,7 @@ const FRAMES_DIR = path.join(ROOT, '.render', 'frames2030');
 const AUDIO_PATH = path.join(ROOT, '.render', 'audio2030.wav');
 
 const FPS = 30;
-const AD_DURATION_MS = 46000; // AD_CONFIG.totalDurationMs
+const AD_DURATION_MS = 48600; // AD_CONFIG.totalDurationMs
 const TAIL_MS = 500;          // small safety buffer for trailing sound/hold
 const OVERRIDE_MS = process.argv[2] ? parseInt(process.argv[2], 10) : null;
 const CAPTURE_MS = OVERRIDE_MS || (AD_DURATION_MS + TAIL_MS);
