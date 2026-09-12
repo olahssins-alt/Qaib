@@ -26,6 +26,12 @@
 body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: var(--font-body); }
 #frame { width: 390px; max-width: 100vw; }
 #stage { position: relative; width: 100%; aspect-ratio: 9/16; background: var(--void); border-radius: 22px; overflow: hidden; box-shadow: 0 30px 100px rgba(0,0,0,0.7); }
+/* scenePunch() transforms this instead of #stage itself: a transform on the
+   screenshotted element's own box corrupts Playwright's element screenshot
+   (the scaled box no longer matches the rendered viewport region). Keeping
+   #stage always untransformed and punching this inner layer instead gives
+   the same visual flash, safely clipped by #stage's own overflow:hidden. */
+#stageInner { position: absolute; inset: 0; }
 canvas#fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
 #grain { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0.04; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
 .vignette { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0,0,0,0.55) 100%); }
@@ -236,6 +242,7 @@ canvas#fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;
 <body>
   <div id="frame">
     <div id="stage">
+     <div id="stageInner">
       <canvas id="fx"></canvas>
       <div id="grain"></div>
       <div class="vignette"></div>
@@ -383,6 +390,7 @@ canvas#fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;
 
       <div id="playOverlay"><div class="playBtn">▶</div></div>
       <div class="progressTrack"><div class="progressFill" id="progress"></div></div>
+     </div>
     </div>
     <button id="replayBtn">↻ Replay</button>
   </div>
@@ -520,7 +528,7 @@ class Timeline {
   const audio = new AudioEngine();
 
   const els = {
-    stage: $('stage'),
+    stage: $('stage'), stageInner: $('stageInner'),
     fullBleedScenes: ['sceneHero','sceneFeatures','sceneMoney','sceneParents','sceneCta'].map($),
     browserLayer: $('browserLayer'),
     browserPages: ['pageHook','pageGenerate','pageCovers','pagePricing'].map($),
@@ -561,10 +569,10 @@ class Timeline {
 
   function scenePunch() {
     if (reduceMotion) return;
-    els.stage.style.transition = 'none';
-    els.stage.style.transform = 'scale(1.05)';
-    els.stage.style.filter = 'brightness(1.25) saturate(1.3)';
-    setTimeout(() => { els.stage.style.transform = ''; els.stage.style.filter = ''; }, 140);
+    els.stageInner.style.transition = 'none';
+    els.stageInner.style.transform = 'scale(1.05)';
+    els.stageInner.style.filter = 'brightness(1.25) saturate(1.3)';
+    setTimeout(() => { els.stageInner.style.transform = ''; els.stageInner.style.filter = ''; }, 140);
   }
 
   const BROWSER_PAGE_ID = { hook: 'pageHook', generate: 'pageGenerate', covers: 'pageCovers', pricing: 'pagePricing' };
@@ -664,7 +672,7 @@ class Timeline {
   function resetAll() {
     notifyGen++;
     if (typeIntervalId) { clearInterval(typeIntervalId); typeIntervalId = null; }
-    els.stage.style.transform = ''; els.stage.style.filter = '';
+    els.stageInner.style.transform = ''; els.stageInner.style.filter = '';
     els.progress.style.width = '0%';
     els.browserLayer.classList.remove('active');
     els.fullBleedScenes.forEach(s => s.classList.remove('active'));
