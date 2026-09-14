@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickAIBook — Forge</title>
+<style>
+:root {
+  --void: #05030E; --ink: #FFF6EC; --muted: #B9A9C9;
+  --amber: #FFB01F; --ember: #FF5A1F; --teal: #12E2C4; --violet: #7B2BFF; --rose: #FF2D78; --lime: #B6FF3C;
+  --a: #FFB01F; --b: #12E2C4;
+  --font-d: "Liberation Sans", "DejaVu Sans", Arial, sans-serif;
+  --font-b: "Liberation Sans", "DejaVu Sans", Arial, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: var(--font-b); }
+#frame { width: 390px; max-width: 100vw; }
+#stage { position: relative; width: 100%; aspect-ratio: 9/16; background: var(--void); border-radius: 22px; overflow: hidden; box-shadow: 0 30px 100px rgba(0,0,0,.78); }
+#stageInner { position: absolute; inset: 0; }
+
+.bgLayer { position: absolute; inset: 0; z-index: 0; opacity: 0; transition: opacity .34s ease; }
+.bgLayer.on { opacity: 1; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+.vignette { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: radial-gradient(125% 92% at 50% 44%, transparent 50%, rgba(0,0,0,.78) 100%); }
+#chromaFlash { position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0; background: var(--a); mix-blend-mode: screen; }
+#grain { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: .045; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+#overlay { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.scene { position: absolute; inset: 0; opacity: 0; transition: opacity .26s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.scene.active { opacity: 1; }
+
+.progressTrack { position: absolute; top: 13px; left: 13px; right: 13px; height: 3px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; z-index: 9; }
+.progressFill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--a), var(--b)); box-shadow: 0 0 12px var(--a); }
+
+.eyebrow { font-family: var(--font-b); font-size: 9.5px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--b); opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s cubic-bezier(.2,.9,.3,1.3); }
+.eyebrow.in { opacity: 1; transform: translateY(0); }
+.headline { font-family: var(--font-d); font-size: 21px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); text-align: center; padding: 0 26px; line-height: 1.18;
+  text-shadow: 0 2px 4px rgba(0,0,0,.6), 0 8px 26px rgba(0,0,0,.8); }
+.sub { font-family: var(--font-b); font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; padding: 0 34px; line-height: 1.45; opacity: 0; transform: translateY(7px); transition: opacity .3s ease, transform .34s cubic-bezier(.2,.9,.3,1.2); text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+.sub.in { opacity: 1; transform: translateY(0); }
+.word { display: inline-block; opacity: 0; transform: translateY(16px) rotateX(-70deg); transform-origin: 50% 0%; transition: opacity .3s ease, transform .42s cubic-bezier(.2,1.1,.3,1.15); }
+.word.in { opacity: 1; transform: translateY(0) rotateX(0deg); }
+.accentA { color: var(--a); } .accentB { color: var(--b); }
+
+.statChip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 22px; background: rgba(10,6,22,.6);
+  backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,255,255,.18); font-family: var(--font-b); font-size: 10px; font-weight: 700; color: var(--ink);
+  opacity: 0; transform: translateY(8px) scale(.92); transition: opacity .28s ease, transform .32s cubic-bezier(.25,1.4,.4,1); }
+.statChip.in { opacity: 1; transform: translateY(0) scale(1); }
+.snap { animation: snapPop .3s cubic-bezier(.25,1.6,.45,1); }
+@keyframes snapPop { 0% { transform: scale(1);} 45% { transform: scale(1.07);} 100% { transform: scale(1);} }
+
+.promptBox { width: 268px; padding: 15px 16px; border-radius: 15px;
+  background: linear-gradient(150deg, rgba(255,255,255,.1), rgba(255,255,255,.03)); backdrop-filter: blur(10px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 28px 60px rgba(0,0,0,.6);
+  opacity: 0; transform: translateY(14px); transition: opacity .38s ease, transform .55s cubic-bezier(.2,.9,.3,1.08); }
+.promptBox.in { opacity: 1; transform: translateY(0); }
+.promptLabel { font-family: var(--font-b); font-size: 8.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--b); margin-bottom: 8px; }
+.promptText { font-family: var(--font-b); font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.4; min-height: 36px; }
+.caret { display: inline-block; width: 2px; height: 14px; background: var(--a); vertical-align: -2px; }
+.blink { animation: bk 1s steps(1,end) infinite; }
+@keyframes bk { 0%,50% { opacity: 1;} 51%,100% { opacity: 0;} }
+
+.voiceChip { display: flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 26px; background: rgba(10,6,22,.6); backdrop-filter: blur(8px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.16); opacity: 0; transform: translateY(8px); transition: opacity .3s ease, transform .34s cubic-bezier(.2,.9,.3,1.2); }
+.voiceChip.in { opacity: 1; transform: translateY(0); }
+.voiceChip span { font-family: var(--font-b); font-size: 11px; font-weight: 700; color: var(--ink); }
+.playDot { width: 22px; height: 22px; border-radius: 50%; background: var(--a); display: flex; align-items: center; justify-content: center; color: #120b03; font-size: 9px; }
+
+.bigNum { font-family: var(--font-d); font-size: 46px; font-weight: 700; letter-spacing: -.03em; color: var(--lime);
+  text-shadow: 0 0 40px rgba(182,255,60,.5), 0 4px 10px rgba(0,0,0,.7); }
+.ctaBtn { position: relative; padding: 15px 34px; border-radius: 30px; font-family: var(--font-d); font-size: 14.5px; font-weight: 700; color: #180c02;
+  background: linear-gradient(135deg, var(--a), var(--b)); opacity: 0; transform: translateY(12px) scale(.92);
+  transition: opacity .36s ease, transform .42s cubic-bezier(.25,1.4,.4,1); box-shadow: 0 16px 44px rgba(255,176,31,.42); }
+.ctaBtn.in { opacity: 1; transform: translateY(0) scale(1); }
+.ctaBtn::after { content: ''; position: absolute; inset: -5px; border-radius: 34px; border: 2px solid var(--a); opacity: 0; }
+.ctaBtn.ring::after { animation: ctaRing .9s ease-out; }
+@keyframes ctaRing { 0% { opacity: .85; transform: scale(.94);} 100% { opacity: 0; transform: scale(1.22);} }
+.ctaUrl { font-family: var(--font-d); font-size: 16px; font-weight: 700; color: var(--b); opacity: 0; transform: translateY(7px); transition: opacity .36s ease, transform .36s ease;
+  text-shadow: 0 0 24px rgba(18,226,196,.5); }
+.ctaUrl.in { opacity: 1; transform: translateY(0); }
+.ctaUrl::after { content: ''; display: block; height: 2px; width: 66%; margin: 4px auto 0; border-radius: 2px; background: linear-gradient(90deg, var(--a), var(--b)); }
+.ctaTrust { font-family: var(--font-b); font-size: 10.5px; font-weight: 600; color: var(--muted); opacity: 0; transition: opacity .34s ease; }
+.ctaTrust.in { opacity: 1; }
+
+#playOverlay { position: absolute; inset: 0; z-index: 12; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.playBtn { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--amber), var(--teal)); color: #140a02; display: flex; align-items: center; justify-content: center; font-size: 25px; box-shadow: 0 16px 44px rgba(255,176,31,.45); }
+#replayBtn { margin-top: 14px; width: 100%; border-radius: 24px; padding: 12px 20px; font-family: var(--font-d); font-size: 12px; font-weight: 700; letter-spacing: .04em; background: linear-gradient(135deg, var(--amber), var(--teal)); color: #150b02; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div id="frame">
+    <div id="stage">
+     <div id="stageInner">
+      <div class="bgLayer" id="bgA"></div>
+      <div class="bgLayer" id="bgB"></div>
+      <canvas id="gl"></canvas>
+      <div class="vignette"></div>
+      <div id="chromaFlash"></div>
+      <div id="grain"></div>
+
+      <div id="overlay">
+        <div class="scene" id="sOpen">
+          <div class="eyebrow" id="openEyebrow" style="margin-bottom:14px">one idea in · a finished book out</div>
+          <div class="promptBox" id="promptBox">
+            <div class="promptLabel">Your idea</div>
+            <div class="promptText"><span id="promptText"></span><span class="caret blink"></span></div>
+          </div>
+        </div>
+
+        <div class="scene" id="sBook">
+          <div class="headline" id="bookHeadline" style="position:absolute; bottom:104px"></div>
+          <div class="sub" id="bookSub" style="position:absolute; bottom:78px">Text, characters and illustrations — forged together.</div>
+        </div>
+
+        <div class="scene" id="sPages">
+          <div class="eyebrow" id="pagesEyebrow" style="position:absolute; top:74px">inside the book</div>
+          <div class="statChip" id="pagesChip" style="position:absolute; bottom:92px">200+ pages · instant PDF export</div>
+        </div>
+
+        <div class="scene" id="sStyle">
+          <div class="headline" id="styleHeadline" style="position:absolute; bottom:104px"></div>
+          <div class="statChip" id="styleChip" style="position:absolute; bottom:74px">15+ illustration styles · one click</div>
+        </div>
+
+        <div class="scene" id="sRing">
+          <div class="headline" id="ringHeadline" style="position:absolute; bottom:112px"></div>
+          <div class="statChip" id="ringChip" style="position:absolute; bottom:84px">Storybooks · Workbooks · Puzzles · Chapter books</div>
+        </div>
+
+        <div class="scene" id="sFly">
+          <div class="eyebrow" id="flyEyebrow" style="position:absolute; top:64px">everything is built in</div>
+        </div>
+
+        <div class="scene" id="sVoice">
+          <div class="eyebrow" id="voiceEyebrow" style="position:absolute; top:112px">storytelling voice</div>
+          <div class="voiceChip" id="voiceChip" style="position:absolute; bottom:132px"><span class="playDot">▶</span><span>Chapter 1 · Read aloud</span></div>
+          <div class="sub" id="voiceSub" style="position:absolute; bottom:100px">Every story read aloud in a warm, natural voice.</div>
+        </div>
+
+        <div class="scene" id="sEarn">
+          <div class="eyebrow" id="earnEyebrow" style="position:absolute; top:104px">turn creativity into income</div>
+          <div class="bigNum" id="earnNum" style="position:absolute; bottom:120px">$0</div>
+          <div class="sub" id="earnSub" style="position:absolute; bottom:92px">Publish it. Sell it. Get paid for your creativity.</div>
+        </div>
+
+        <div class="scene" id="sPrice">
+          <div class="eyebrow" id="priceEyebrow" style="position:absolute; top:96px">start free · no card</div>
+          <div class="statChip" id="priceChip" style="position:absolute; bottom:96px">5 free page credits · upgrade anytime</div>
+        </div>
+
+        <div class="scene" id="sCta">
+          <div class="sub" id="ctaSub" style="position:absolute; top:474px">Your idea. A real, finished book. In minutes.</div>
+          <div class="ctaBtn" id="ctaBtn" style="position:absolute; top:504px">Start creating free</div>
+          <div class="ctaTrust" id="ctaTrust" style="position:absolute; top:566px">No credit card needed · 5 free credits</div>
+          <div class="ctaUrl" id="ctaUrl" style="position:absolute; top:596px">quickaibook.com</div>
+        </div>
+      </div>
+
+      <div class="progressTrack"><div class="progressFill" id="progress"></div></div>
+      <div id="playOverlay"><div class="playBtn">▶</div></div>
+     </div>
+    </div>
+    <button id="replayBtn">↻ Replay</button>
+  </div>
+
+<script>__THREE__</script>
+<script>
+__TIMELINE__
+__AUDIO__
+__ART__
+
+/* ============================ the 3D world ============================
+   Real geometry, real lights, real materials. Everything the viewer reads
+   as an object — the book, its pages, the carousel, the feature panels,
+   the waveform, the coins, the pricing slab, the logo plaque — is a lit
+   mesh in one WebGL scene, not a styled rectangle. */
+const T = THREE;
+
+function canvasTexture(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new T.CanvasTexture(c);
+  t.colorSpace = T.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* rasterise one of the SVG covers at high resolution so it stays crisp
+   when a book fills the 4K frame */
+function artTexture(uri, w = 900, h = 1260) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#12101c'; ctx.fillRect(0, 0, w, h);
+  const tex = new T.CanvasTexture(c);
+  tex.colorSpace = T.SRGBColorSpace;
+  tex.anisotropy = 8;
+  const img = new Image();
+  img.onload = () => { ctx.drawImage(img, 0, 0, w, h); tex.needsUpdate = true; };
+  img.src = uri;
+  return tex;
+}
+
+const PAGE_EDGE = canvasTexture(256, 256, (g, w, h) => {
+  g.fillStyle = '#efe7d6'; g.fillRect(0, 0, w, h);
+  for (let x = 0; x < w; x += 3) {
+    g.fillStyle = x % 6 === 0 ? '#cdc2ad' : '#fdf8ec';
+    g.fillRect(x, 0, 1.4, h);
+  }
+});
+
+/* a real printed page: illustration plate on top, ruled text below */
+function pageTexture(uri, num) {
+  const w = 720, h = 1000;
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  const paint = () => {
+    const grad = g.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#FFFBF1'); grad.addColorStop(1, '#EFE5D3');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#C9BCA6';
+    for (let i = 0; i < 7; i++) {
+      const y = 640 + i * 44;
+      g.fillRect(64, y, (i === 6 ? 300 : i % 2 ? 560 : 592), 9);
+    }
+    g.fillStyle = '#9B8E7B';
+    g.font = '600 26px "Liberation Sans", Arial, sans-serif';
+    g.textAlign = 'right'; g.fillText(String(num), w - 60, h - 44);
+    g.textAlign = 'left';
+  };
+  paint();
+  const tex = new T.CanvasTexture(cv);
+  tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = 8;
+  const img = new Image();
+  img.onload = () => {
+    paint();
+    g.save();
+    g.beginPath(); g.roundRect(64, 72, w - 128, 500, 18); g.clip();
+    g.drawImage(img, 64, 72, w - 128, 500);
+    g.restore();
+    g.strokeStyle = 'rgba(0,0,0,.10)'; g.lineWidth = 3;
+    g.beginPath(); g.roundRect(64, 72, w - 128, 500, 18); g.stroke();
+    tex.needsUpdate = true;
+  };
+  img.src = uri;
+  return tex;
+}
+
+function panelTexture(f) {
+  return canvasTexture(768, 420, (g, w, h) => {
+    const grad = g.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#2E2557'); grad.addColorStop(1, '#171034');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    g.fillStyle = f.c + '26';
+    g.beginPath(); g.roundRect(48, 48, 96, 96, 26); g.fill();
+    g.save();
+    g.translate(57.6, 57.6); g.scale(3.2, 3.2);
+    g.strokeStyle = f.c; g.lineWidth = 2.1; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.stroke(new Path2D(f.d));
+    g.restore();
+    g.fillStyle = '#FFF6EC'; g.font = '700 54px "Liberation Sans", Arial, sans-serif';
+    g.fillText(f.t, 48, 234);
+    g.fillStyle = '#B9A9C9'; g.font = '600 34px "Liberation Sans", Arial, sans-serif';
+    g.fillText(f.s, 48, 288);
+    g.fillStyle = f.c; g.fillRect(48, 330, 120, 6);
+  });
+}
+
+function wordmarkTexture() {
+  return canvasTexture(1024, 320, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    // lay the three segments out by measured width so they never collide
+    g.font = '700 150px "Liberation Sans", Arial, sans-serif';
+    g.textAlign = 'left'; g.textBaseline = 'middle';
+    const parts = [['Quick', '#FFF6EC'], ['AI', '#FFB01F'], ['Book', '#FFF6EC']];
+    const total = parts.reduce((s, p) => s + g.measureText(p[0]).width, 0);
+    let x = (w - total) / 2;
+    parts.forEach(([txt, col]) => {
+      g.fillStyle = col; g.fillText(txt, x, h / 2);
+      x += g.measureText(txt).width;
+    });
+  });
+}
+
+function priceTexture() {
+  return canvasTexture(720, 900, (g, w, h) => {
+    const grad = g.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#1A1636'); grad.addColorStop(1, '#0B0820');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#12E2C4'; g.font = '700 30px "Liberation Sans", Arial, sans-serif';
+    g.fillText('STARTER', 58, 96);
+    g.fillStyle = '#FFF6EC'; g.font = '700 150px "Liberation Sans", Arial, sans-serif';
+    g.fillText('$0', 52, 232);
+    g.fillStyle = '#B9A9C9'; g.font = '600 30px "Liberation Sans", Arial, sans-serif';
+    g.fillText('No credit card needed', 58, 286);
+    const rows = ['5 Page Credits (Free)', 'AI-Powered Text & Image', 'Cloud Draft Saving', 'Live Support Access'];
+    rows.forEach((r, i) => {
+      const y = 380 + i * 82;
+      g.fillStyle = 'rgba(18,226,196,.18)';
+      g.beginPath(); g.arc(78, y - 10, 24, 0, 7); g.fill();
+      g.strokeStyle = '#12E2C4'; g.lineWidth = 6; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(66, y - 10); g.lineTo(75, y - 1); g.lineTo(92, y - 20); g.stroke();
+      g.fillStyle = '#FFF6EC'; g.font = '600 34px "Liberation Sans", Arial, sans-serif';
+      g.fillText(r, 120, y + 2);
+    });
+    const bg = g.createLinearGradient(58, 0, 662, 0);
+    bg.addColorStop(0, '#FFB01F'); bg.addColorStop(1, '#12E2C4');
+    g.fillStyle = bg; g.beginPath(); g.roundRect(58, 730, 604, 96, 28); g.fill();
+    g.fillStyle = '#180C02'; g.font = '700 44px "Liberation Sans", Arial, sans-serif';
+    g.textAlign = 'center'; g.fillText('Get Started', 360, 792);
+  });
+}
+
+/* ExtrudeGeometry emits world-space UVs, so a texture mapped onto one
+   would be scaled by the shape's units instead of filling the face. Remap
+   every UV into 0..1 across the bounding box so artwork lands exactly. */
+function fitUV(geo) {
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y;
+  const pos = geo.attributes.position, uv = geo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) {
+    uv.setXY(i, (pos.getX(i) - bb.min.x) / sx, (pos.getY(i) - bb.min.y) / sy);
+  }
+  uv.needsUpdate = true;
+  return geo;
+}
+
+function roundedShape(w, h, r) {
+  const s = new T.Shape();
+  s.moveTo(-w / 2 + r, -h / 2);
+  s.lineTo(w / 2 - r, -h / 2); s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+  s.lineTo(w / 2, h / 2 - r);  s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+  s.lineTo(-w / 2 + r, h / 2); s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+  s.lineTo(-w / 2, -h / 2 + r); s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+  return s;
+}
+
+/* a real book: cover art on the front, printed spine, ruled page block */
+function makeBook(coverTex, accent) {
+  const W = 2.0, H = 2.78, D = 0.44;
+  const spine = canvasTexture(64, 512, (g, w, h) => {
+    const grad = g.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, accent); grad.addColorStop(1, '#12E2C4');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 0, 6, h); g.fillRect(w - 6, 0, 6, h);
+  });
+  const back = canvasTexture(256, 360, (g, w, h) => {
+    const grad = g.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#241C46'); grad.addColorStop(1, '#100C24');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,255,255,.14)';
+    g.beginPath(); g.roundRect(28, 36, w - 56, 8, 4); g.fill();
+    g.beginPath(); g.roundRect(28, 60, w - 96, 8, 4); g.fill();
+  });
+  const paper = new T.MeshStandardMaterial({ map: PAGE_EDGE, roughness: .82, metalness: .02 });
+  const mats = [
+    paper,
+    new T.MeshStandardMaterial({ map: spine, roughness: .38, metalness: .34 }),
+    paper, paper,
+    new T.MeshStandardMaterial({ map: coverTex, roughness: .46, metalness: .12 }),
+    new T.MeshStandardMaterial({ map: back, roughness: .6, metalness: .1 }),
+  ];
+  const m = new T.Mesh(new T.BoxGeometry(W, H, D), mats);
+  m.castShadow = true;
+  return m;
+}
+
+function makePanel(f) {
+  const geo = new T.ExtrudeGeometry(roundedShape(2.6, 1.48, .24), {
+    depth: .16, bevelEnabled: true, bevelThickness: .05, bevelSize: .05, bevelSegments: 3, curveSegments: 12,
+  });
+  geo.center(); fitUV(geo);
+  const tex = panelTexture(f);
+  const side = new T.MeshStandardMaterial({ color: 0x1a1533, roughness: .3, metalness: .7 });
+  const face = new T.MeshStandardMaterial({ map: tex, roughness: .34, metalness: .22,
+    emissive: new T.Color(0xffffff).multiplyScalar(.28), emissiveMap: tex });
+  const m = new T.Mesh(geo, [face, side]);
+  return m;
+}
+</script>
+</body>
+</html>
