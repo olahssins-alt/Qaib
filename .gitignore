@@ -3,3 +3,5 @@
 .render/capture_full.log
 .render/frames2030/
 .render/audio2030.wav
+.render/frames3d/
+.render/audio3d.wav
