@@ -107,6 +107,35 @@ def cmd_design(args) -> None:
         print(f"Saved {png} (4500x5500, transparent)", file=sys.stderr)
 
 
+def cmd_keywords(args) -> None:
+    from . import keywords as kw
+
+    if args.kw_command == "init":
+        kw.init_file(args.file)
+        print(f"Created {args.file}. Open it in Excel/Google Sheets, or add rows with `keywords add`.", file=sys.stderr)
+    elif args.kw_command == "add":
+        if not Path(args.file).exists():
+            kw.init_file(args.file)
+        done = kw.add_keywords(args.file, args.keyword, teepublic=args.teepublic, etsy=args.etsy)
+        print(f"Saved {len(done)} keyword(s) to {args.file}", file=sys.stderr)
+    elif args.kw_command == "trends":
+        if not Path(args.file).exists():
+            kw.init_file(args.file)
+        for trends_csv in args.trends_csv:
+            for row in kw.import_trends(args.file, trends_csv):
+                growth = f"{row['trend_growth']}x vs last year" if row["trend_growth"] else "no year-ago data"
+                print(f"  {row['keyword']}: recent {row['trend_recent']}/100, {growth}, peak {row['peak_month'] or '?'}",
+                      file=sys.stderr)
+        print(f"Updated {args.file}", file=sys.stderr)
+    elif args.kw_command == "score":
+        scored = kw.score_rows(kw.read_file(args.file))
+        if args.json:
+            text = json.dumps([{k: v for k, v in r.items() if not k.startswith("_")} for r in scored], indent=2)
+        else:
+            text = kw.format_scores(scored)
+        _write(text, args.out)
+
+
 def cmd_ask(args) -> None:
     from .claude import ask
 
@@ -164,6 +193,24 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--png", action="store_true", help="Also export a 4500x5500 PNG (needs cairosvg)")
     p.add_argument("-o", "--out", help="SVG file to write (default design.svg)")
     p.set_defaults(func=cmd_design)
+
+    p = sub.add_parser("keywords", help="Track keywords: result counts + Google Trends, ranked by your own measurements")
+    kw_sub = p.add_subparsers(dest="kw_command", required=True)
+    k = kw_sub.add_parser("init", help="Create a keywords file to fill in")
+    k.add_argument("file", nargs="?", default="keywords.csv")
+    k = kw_sub.add_parser("add", help="Add keywords and (optionally) the number of search results you counted")
+    k.add_argument("keyword", nargs="+", help='One or more phrases, e.g. "pickleball shirt"')
+    k.add_argument("--teepublic", help="Number of results when you search this on TeePublic")
+    k.add_argument("--etsy", help="Number of results when you search this on Etsy")
+    k.add_argument("-f", "--file", default="keywords.csv")
+    k = kw_sub.add_parser("trends", help="Import Google Trends 'Interest over time' CSV export(s)")
+    k.add_argument("trends_csv", nargs="+", help="multiTimeline.csv file(s) downloaded from trends.google.com")
+    k.add_argument("-f", "--file", default="keywords.csv")
+    k = kw_sub.add_parser("score", help="Rank keywords by demand, growth and competition")
+    k.add_argument("-f", "--file", default="keywords.csv")
+    k.add_argument("--json", action="store_true")
+    k.add_argument("-o", "--out")
+    p.set_defaults(func=cmd_keywords)
 
     p = sub.add_parser("ask", help="Ask Claude a question about your sales data")
     data_args(p)
