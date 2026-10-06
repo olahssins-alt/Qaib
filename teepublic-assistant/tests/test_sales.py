@@ -4,8 +4,8 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-from tpt_assistant import sales
-from tpt_assistant.cli import main
+from teepublic_assistant import sales
+from teepublic_assistant.cli import main
 
 
 def write_csv(text: str) -> str:
@@ -29,12 +29,13 @@ class ParseTests(unittest.TestCase):
         self.assertIsNone(sales.parse_date("not a date"))
 
     def test_aliases_and_overrides(self):
-        cols = sales.resolve_columns(["Sale Date", "Product Name", "Net Earnings"])
+        cols = sales.resolve_columns(["Sale Date", "Design Title", "Product Type", "Royalty"])
         self.assertEqual(cols["date"], "Sale Date")
-        self.assertEqual(cols["product"], "Product Name")
-        self.assertEqual(cols["earnings"], "Net Earnings")
-        cols = sales.resolve_columns(["When", "Thing", "Money"], {"product": "Thing", "earnings": "Money"})
-        self.assertEqual(cols["product"], "Thing")
+        self.assertEqual(cols["design"], "Design Title")
+        self.assertEqual(cols["product"], "Product Type")
+        self.assertEqual(cols["earnings"], "Royalty")
+        cols = sales.resolve_columns(["When", "Thing", "Money"], {"design": "Thing", "earnings": "Money"})
+        self.assertEqual(cols["design"], "Thing")
         with self.assertRaises(ValueError):
             sales.resolve_columns(["When", "Money"])
 
@@ -42,11 +43,11 @@ class ParseTests(unittest.TestCase):
 class SummaryTests(unittest.TestCase):
     def setUp(self):
         self.path = write_csv(
-            "Date,Product Title,Sale Price,Your Earnings,Status\n"
-            "01/05/2026,Fractions,$4.00,$3.20,Completed\n"
-            "01/06/2026,Fractions,$4.00,$3.20,Completed\n"
-            "02/01/2026,Fractions,$4.00,-$3.20,Refunded\n"
-            "02/02/2026,Memory Book,$3.00,$2.10,Completed\n"
+            "Date,Design,Product,Retail Price,Earnings,Status\n"
+            "01/05/2026,Retro Cat,T-Shirt,$24.00,$4.00,Completed\n"
+            "01/06/2026,Retro Cat,Sticker,$4.00,$0.60,Completed\n"
+            "02/01/2026,Retro Cat,T-Shirt,$24.00,-$4.00,Refunded\n"
+            "02/02/2026,Plant Mom,Mug,$16.00,$2.00,Completed\n"
         )
 
     def tearDown(self):
@@ -56,8 +57,9 @@ class SummaryTests(unittest.TestCase):
         s = sales.summarize(sales.load_sales(self.path))
         self.assertEqual(s["totals"]["orders"], 3)
         self.assertEqual(s["totals"]["refunds"], 1)
-        self.assertAlmostEqual(s["totals"]["earnings"], 5.30)
-        self.assertEqual(s["top_products"][0]["product"], "Fractions")
+        self.assertAlmostEqual(s["totals"]["earnings"], 2.60)
+        self.assertEqual(s["top_designs"][0]["design"], "Plant Mom")
+        self.assertEqual(s["by_product_type"][0]["product"], "Mug")
         self.assertEqual([m["month"] for m in s["monthly"]], ["2026-01", "2026-02"])
         self.assertEqual(s["period"], {"start": "2026-01-05", "end": "2026-02-02"})
 
@@ -66,8 +68,8 @@ class SummaryTests(unittest.TestCase):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
             main(["report", self.path])
-        self.assertIn("TpT SALES REPORT", buf.getvalue())
-        self.assertIn("Fractions", buf.getvalue())
+        self.assertIn("TEEPUBLIC SALES REPORT", buf.getvalue())
+        self.assertIn("Retro Cat", buf.getvalue())
 
 
 class SampleDataTest(unittest.TestCase):

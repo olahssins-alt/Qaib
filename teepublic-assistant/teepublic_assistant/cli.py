@@ -1,4 +1,4 @@
-"""Command line entry point: python -m tpt_assistant <command> ..."""
+"""Command line entry point: python -m teepublic_assistant <command> ..."""
 
 from __future__ import annotations
 
@@ -59,7 +59,11 @@ def cmd_insights(args) -> None:
 def cmd_listing(args) -> None:
     from .claude import format_listing, write_listing
 
-    notes = Path(args.notes).read_text(encoding="utf-8") if Path(args.notes).is_file() else args.notes
+    notes = None
+    if args.notes:
+        notes = Path(args.notes).read_text(encoding="utf-8") if Path(args.notes).is_file() else args.notes
+    if args.image and not Path(args.image).is_file():
+        raise SystemExit(f"No such image: {args.image}")
     existing = None
     if args.existing:
         existing = Path(args.existing).read_text(encoding="utf-8") if Path(args.existing).is_file() else args.existing
@@ -67,7 +71,7 @@ def cmd_listing(args) -> None:
     if args.csv:
         summary = _load_summary(args)
     print("Asking Claude to write the listing…", file=sys.stderr)
-    listing = write_listing(notes, existing_listing=existing, store_summary=summary)
+    listing = write_listing(notes, image=args.image, existing_listing=existing, store_summary=summary)
     _write(json.dumps(listing, indent=2) if args.json else format_listing(listing), args.out)
 
 
@@ -83,31 +87,32 @@ def cmd_ask(args) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="tpt_assistant", description="Sales analytics and Claude-powered tools for TpT sellers.")
+    parser = argparse.ArgumentParser(prog="teepublic_assistant", description="Sales analytics and Claude-powered tools for TeePublic artists.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     def data_args(p, required=True):
         if required:
-            p.add_argument("csv", help="Sales CSV exported from your TpT seller dashboard")
+            p.add_argument("csv", help="Sales/earnings CSV from your TeePublic dashboard")
         else:
-            p.add_argument("--csv", help="Optional sales CSV so Claude can match your store's pricing")
+            p.add_argument("--csv", help="Optional sales CSV so Claude knows what already sells in your store")
         p.add_argument("--col", action="append", metavar="FIELD=COLUMN",
                        help=f"Map a field to a CSV column if auto-detection misses it. Fields: {', '.join(sales.COLUMN_ALIASES)}")
-        p.add_argument("--top", type=int, default=10, help="How many top products to include (default 10)")
+        p.add_argument("--top", type=int, default=10, help="How many top designs to include (default 10)")
         p.add_argument("-o", "--out", help="Write the result to this file")
 
-    p = sub.add_parser("report", help="Sales report from a TpT CSV (offline, no API key needed)")
+    p = sub.add_parser("report", help="Sales report from your TeePublic CSV (offline, no API key needed)")
     data_args(p)
     p.add_argument("--json", action="store_true", help="Print the full summary as JSON")
     p.set_defaults(func=cmd_report)
 
     p = sub.add_parser("insights", help="Claude reads your sales and writes an action plan")
     data_args(p)
-    p.add_argument("--goal", help='What you are aiming for, e.g. "hit $500/month by back to school"')
+    p.add_argument("--goal", help='What you are aiming for, e.g. "reach $300/month before the holidays"')
     p.set_defaults(func=cmd_insights)
 
-    p = sub.add_parser("listing", help="Claude writes or improves a product listing")
-    p.add_argument("notes", help="Notes about the product (text, or a path to a .txt/.md file)")
+    p = sub.add_parser("listing", help="Claude writes or improves a design listing (title, description, tags)")
+    p.add_argument("notes", nargs="?", help="Notes about the design (text, or a path to a .txt/.md file)")
+    p.add_argument("--image", help="The design image (PNG/JPG/GIF/WEBP) so Claude can see it")
     p.add_argument("--existing", help="Your current listing to improve (text or file path)")
     p.add_argument("--json", action="store_true", help="Print the listing as JSON")
     data_args(p, required=False)
