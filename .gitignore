@@ -7,3 +7,5 @@
 .render/audio3d.wav
 .render/framesforge/
 .render/audioforge.wav
+__pycache__/
+*.pyc
