@@ -22,7 +22,7 @@ cd teepublic-assistant
 pip install -r requirements.txt
 pip install pillow                    # optional: shrinks big design files for `listing --image`
 pip install cairosvg                  # optional: PNG export for `design --png`
-export ANTHROPIC_API_KEY=sk-ant-...   # only needed for insights / listing / ask
+export ANTHROPIC_API_KEY=sk-ant-...   # needed for every command except report
 ```
 
 You can get an API key at https://console.anthropic.com.
