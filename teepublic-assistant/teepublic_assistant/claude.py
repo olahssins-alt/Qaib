@@ -32,26 +32,46 @@ SELLER_CONTEXT = (
 )
 
 
-def _call(content: str | list, *, schema: dict | None = None, effort: str = "high", max_tokens: int = 16000) -> str:
+WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": 15}
+MAX_CONTINUATIONS = 5
+
+
+def _call(content: str | list, *, schema: dict | None = None, effort: str = "high", max_tokens: int = 16000,
+          tools: list | None = None) -> str:
     """Send one request and return the text of the response.
 
-    Uses server-side refusal fallbacks so a request declined by a safety
-    classifier is retried on Anthropic's recommended fallback model.
+    Streams the request (web research turns can run for minutes), resumes
+    turns that the server pauses mid-search, and uses server-side refusal
+    fallbacks so a request declined by a safety classifier is retried on
+    Anthropic's recommended fallback model.
     """
     client = anthropic.Anthropic()
     output_config: dict = {"effort": effort}
     if schema:
         output_config["format"] = {"type": "json_schema", "schema": schema}
+    messages: list[dict] = [{"role": "user", "content": content}]
+    extra = {"tools": tools} if tools else {}
+    paused_text: list[str] = []
     try:
-        response = client.beta.messages.create(
-            model=MODEL,
-            max_tokens=max_tokens,
-            system=SELLER_CONTEXT,
-            output_config=output_config,
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-            messages=[{"role": "user", "content": content}],
-        )
+        for _ in range(MAX_CONTINUATIONS + 1):
+            with client.beta.messages.stream(
+                model=MODEL,
+                max_tokens=max_tokens,
+                system=SELLER_CONTEXT,
+                output_config=output_config,
+                betas=["server-side-fallback-2026-07-01"],
+                fallbacks="default",
+                messages=messages,
+                **extra,
+            ) as stream:
+                response = stream.get_final_message()
+            if response.stop_reason != "pause_turn":
+                break
+            # The server paused a long tool-use turn; send it back so it resumes.
+            paused_text += [b.text for b in response.content if b.type == "text"]
+            messages = [messages[0], {"role": "assistant", "content": response.content}]
+        else:
+            raise SystemExit("Claude's research turn kept pausing; try a narrower topic.")
     except anthropic.AuthenticationError:
         raise SystemExit("Claude rejected the API key. Set ANTHROPIC_API_KEY (see README).")
     except anthropic.RateLimitError:
@@ -66,7 +86,7 @@ def _call(content: str | list, *, schema: dict | None = None, effort: str = "hig
         raise SystemExit(f"Claude declined this request: {reason}")
     if response.stop_reason == "max_tokens":
         raise SystemExit("Claude's answer was cut off (max_tokens). Try a narrower request.")
-    return "".join(b.text for b in response.content if b.type == "text")
+    return "".join(paused_text + [b.text for b in response.content if b.type == "text"])
 
 
 def image_block(path: str | Path) -> dict:
@@ -211,6 +231,75 @@ def format_listing(listing: dict) -> str:
         f"**When to promote:** {listing['promotion_timing']}",
     ]
     return "\n".join(lines)
+
+
+# --- Trend research (live web search) --------------------------------------
+
+def research_trends(topic: str | None = None, *, today: str, count: int = 10, store_summary: dict | None = None,
+                    language: str = "English") -> str:
+    focus = f"Focus on: {topic}." if topic else "Cover the whole market; pick the strongest opportunities."
+    store = ""
+    if store_summary:
+        best = [d["design"] for d in store_summary.get("top_designs", [])[:8]]
+        mix = [p["product"] for p in store_summary.get("by_product_type", [])[:5]]
+        store = (
+            f"\n\nMy own best-selling designs are {json.dumps(best)} and my best product types are {json.dumps(mix)}. "
+            "Favor opportunities that fit my style and audience, and say which of my designs each idea builds on."
+        )
+    prompt = (
+        f"Today is {today}. Research what is selling and trending right now for print-on-demand designs on "
+        f"TeePublic and similar marketplaces (Redbubble, Etsy, Amazon Merch). {focus}{store}\n\n"
+        "Use web search. Look for: niches and micro-niches with rising interest; upcoming holidays, events and "
+        "gift seasons in the next 4-10 weeks (designs must be uploaded early to get indexed); hobbies, professions, "
+        "memes, aesthetics and color/style trends; and signs of how crowded each niche is. Prefer sources from "
+        "the last 6 months and say when a source is older.\n\n"
+        f"Then write a Markdown report in {language}:\n"
+        "1. **Market snapshot** - 5 bullets on what's driving sales right now, each with a source link.\n"
+        "2. **Calendar** - the key dates in the next 10 weeks and when to upload for each.\n"
+        f"3. **Top {count} opportunities**, ranked by earning potential (demand vs. competition vs. which "
+        "products it suits). For each one give:\n"
+        "   - Niche and who buys it (and for what occasion)\n"
+        "   - Why now, with source link(s)\n"
+        "   - Competition: low / medium / high, and why you think so\n"
+        "   - 3 original design concepts (describe the art and any text/slogan exactly)\n"
+        "   - Best products (t-shirt, hoodie, sticker, mug…) and shirt colors\n"
+        f"   - A ready-to-use listing for the strongest concept: title ({TITLE_LIMIT} characters max), main tag, "
+        f"and up to {MAX_TAGS} supporting tags (in English, since buyers search in English)\n"
+        "4. **Avoid** - trends that are oversaturated, short-lived, or tied to trademarks/celebrities/fandoms "
+        "the artist doesn't own.\n\n"
+        "Rules: every number or claim about demand must come from a source you found, with its link. If you "
+        "couldn't find evidence, say so instead of guessing. Never suggest using trademarked names, characters, "
+        "logos or lyrics."
+    )
+    return _call(prompt, effort="high", max_tokens=64000, tools=[WEB_SEARCH_TOOL])
+
+
+# --- Design generator (vector / typography) --------------------------------
+
+def make_design(concept: str, *, colors: str | None = None, shirt_color: str = "black") -> str:
+    """Ask Claude for a print-ready SVG design and return the SVG source."""
+    prompt = (
+        f"Create an original print-on-demand design as a single SVG file.\n\nConcept: {concept}\n"
+        f"It will be printed on a {shirt_color} shirt, so every element must read clearly on {shirt_color}."
+        + (f" Use this palette: {colors}." if colors else " Use a limited palette of 2-4 colors.")
+        + "\n\nTechnical requirements:\n"
+        '- Root element: <svg xmlns="http://www.w3.org/2000/svg" width="4500" height="5500" viewBox="0 0 4500 5500">\n'
+        "- Transparent background: no full-canvas background rectangle.\n"
+        "- Keep the artwork inside the top ~4000px, centered, with ~250px margins.\n"
+        "- Bold, simple shapes and thick strokes that survive printing; no hairlines, no tiny text, "
+        "no photo effects, no gradients with transparency.\n"
+        "- For text use widely available fonts with fallbacks (e.g. font-family=\"Impact, 'Arial Black', sans-serif\"), "
+        "and make letterforms large.\n"
+        "- No embedded raster images, no external references, no scripts.\n"
+        "- The concept must be original: no trademarked names, characters, logos or song lyrics.\n\n"
+        "Return only the SVG source in a single ```svg code block."
+    )
+    text = _call(prompt, effort="high", max_tokens=64000)
+    start = text.find("<svg")
+    end = text.rfind("</svg>")
+    if start == -1 or end == -1:
+        raise SystemExit("Claude didn't return an SVG. Try rephrasing the concept.")
+    return text[start:end + len("</svg>")]
 
 
 # --- Q&A over the data -----------------------------------------------------

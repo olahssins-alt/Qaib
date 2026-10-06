@@ -5,7 +5,13 @@ Sales analytics and Claude-powered tools for artists selling on **TeePublic**.
 - **`report`**: turns your TeePublic sales data into a report: earnings, top designs, which product types earn most, month-by-month trend, full-price vs. sale earnings, marketplace vs. your own store link, and which designs are rising or slipping. Runs offline and doesn't need an API key.
 - **`insights`**: Claude reads your sales summary and writes an action plan covering designs and niches to double down on, product mix, what to fix, 5 new design ideas, and a 30-day checklist timed to upcoming holidays and gift seasons.
 - **`listing`**: Claude **looks at your design image** and writes the listing: title, description, main tag, tags, target buyers, best product types, shirt colors, and variation ideas. It also flags anything that looks like a trademark or character.
+- **`research`**: Claude **searches the web** for what's trending and selling right now (niches, upcoming holidays, competition) and returns ranked opportunities, each with design concepts and a ready-to-use listing. Add `--csv` to build on your own best sellers, or `--language Arabic` for the report language.
+- **`design`**: Claude draws a print-ready **SVG** design (typography or simple vector art, 4500×5500, transparent background). Add `--png` to export a PNG (needs `pip install cairosvg`).
 - **`ask`**: ask Claude any question about your sales data.
+
+A full trend research report (in Arabic, October 2026) is in [`research/trends-2026-10-ar.md`](research/trends-2026-10-ar.md).
+
+> **Important: AI art and your TeePublic tier.** TeePublic sorts artists into *Artisan* (shown in search, higher royalties) and *Apprentice* (not shown in search, half the royalties). Generic, clip-art or unedited AI-generated designs can put an account in Apprentice. Use Claude for research, ideas, slogans and listings. Treat `design` output as a starting point that you edit and make your own; don't mass-upload it as is.
 
 > **Why a CSV?** TeePublic has no public API for designers, and automating logins or scraping your account would break TeePublic's Terms of Service. This tool uses sales data you save yourself, so your account is never touched.
 
@@ -15,6 +21,7 @@ Sales analytics and Claude-powered tools for artists selling on **TeePublic**.
 cd teepublic-assistant
 pip install -r requirements.txt
 pip install pillow                    # optional: shrinks big design files for `listing --image`
+pip install cairosvg                  # optional: PNG export for `design --png`
 export ANTHROPIC_API_KEY=sk-ant-...   # only needed for insights / listing / ask
 ```
 
@@ -52,6 +59,10 @@ python -m teepublic_assistant listing --image my_design.png "retro cat, 80s suns
 # Improve an existing listing
 python -m teepublic_assistant listing --image my_design.png --existing current_listing.txt
 
+# Live trend research (web search) and a design from one of the ideas
+python -m teepublic_assistant research "Christmas" --csv sample_data/sample_sales.csv -o christmas.md
+python -m teepublic_assistant design "retro sunset text: Powered by Coffee and Chaos" --shirt-color black --png -o coffee.svg
+
 # Ask anything
 python -m teepublic_assistant ask sample_data/sample_sales.csv "Which designs should I put on hoodies before winter?"
 ```
@@ -68,5 +79,7 @@ python -m unittest discover -s tests
 
 - Claude features use the `claude-opus-5-5` model (set in `teepublic_assistant/claude.py`) with server-side refusal fallbacks turned on.
 - Listings aim for a title of 60 characters or fewer and at most 15 tags (`TITLE_LIMIT` / `MAX_TAGS` in `claude.py`). Check these limits against TeePublic's current upload form and adjust them if needed.
+- `research` uses Claude's web search tool, which is billed per search on top of tokens (capped at 15 searches per run). Its report links its sources so you can check them.
+- `design` SVGs use common fonts with fallbacks. For the most reliable print, open the SVG in Inkscape/Illustrator, convert text to paths, then export the PNG.
 - `insights` sends Claude only a **summary** of your sales. `ask` also sends the raw CSV when it is under about 200 KB. If your file has customer names or addresses, delete those columns first.
 - Claude's suggestions are a starting point. Check tags and IP warnings before you upload. TeePublic removes designs that infringe trademarks or copyrights.

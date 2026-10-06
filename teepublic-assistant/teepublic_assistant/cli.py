@@ -75,6 +75,38 @@ def cmd_listing(args) -> None:
     _write(json.dumps(listing, indent=2) if args.json else format_listing(listing), args.out)
 
 
+def cmd_research(args) -> None:
+    from datetime import date
+
+    from .claude import research_trends
+
+    summary = _load_summary(args) if args.csv else None
+    print("Claude is researching trends on the web (this can take a few minutes)…", file=sys.stderr)
+    report = research_trends(args.topic, today=date.today().isoformat(), count=args.count,
+                             store_summary=summary, language=args.language)
+    _write(report, args.out)
+
+
+def cmd_design(args) -> None:
+    from .claude import make_design
+
+    out = Path(args.out or "design.svg")
+    if out.suffix.lower() != ".svg":
+        raise SystemExit("--out must end in .svg")
+    print("Claude is drawing the design…", file=sys.stderr)
+    svg = make_design(args.concept, colors=args.colors, shirt_color=args.shirt_color)
+    out.write_text(svg, encoding="utf-8")
+    print(f"Saved {out}", file=sys.stderr)
+    if args.png:
+        try:
+            import cairosvg
+        except ImportError:
+            raise SystemExit("Install cairosvg (pip install cairosvg) to export PNG, or open the SVG in Inkscape and export it.")
+        png = out.with_suffix(".png")
+        cairosvg.svg2png(url=str(out), write_to=str(png), output_width=4500, output_height=5500)
+        print(f"Saved {png} (4500x5500, transparent)", file=sys.stderr)
+
+
 def cmd_ask(args) -> None:
     from .claude import ask
 
@@ -117,6 +149,21 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--json", action="store_true", help="Print the listing as JSON")
     data_args(p, required=False)
     p.set_defaults(func=cmd_listing)
+
+    p = sub.add_parser("research", help="Claude searches the web for trending niches and writes design ideas with listings")
+    p.add_argument("topic", nargs="?", help='Optional focus, e.g. "Christmas", "cats", "nurses", "pickleball"')
+    p.add_argument("--count", type=int, default=10, help="How many opportunities to rank (default 10)")
+    p.add_argument("--language", default="English", help='Report language, e.g. "Arabic" (listings stay in English)')
+    data_args(p, required=False)
+    p.set_defaults(func=cmd_research)
+
+    p = sub.add_parser("design", help="Claude creates a print-ready SVG design (typography / simple vector art)")
+    p.add_argument("concept", help='What to draw, e.g. "retro sunset text: Powered by Coffee and Chaos"')
+    p.add_argument("--colors", help='Palette, e.g. "mustard, burnt orange, cream"')
+    p.add_argument("--shirt-color", default="black", help="Shirt color it will print on (default black)")
+    p.add_argument("--png", action="store_true", help="Also export a 4500x5500 PNG (needs cairosvg)")
+    p.add_argument("-o", "--out", help="SVG file to write (default design.svg)")
+    p.set_defaults(func=cmd_design)
 
     p = sub.add_parser("ask", help="Ask Claude a question about your sales data")
     data_args(p)
