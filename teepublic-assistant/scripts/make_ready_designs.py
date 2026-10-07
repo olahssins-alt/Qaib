@@ -152,8 +152,78 @@ def home_holidays():
     p.append("</svg>")
     return "".join(p)
 
+
+# ---------- 4. PARTRIDGE SPOTTED (birdwatching) ----------
+def partridge():
+    cream, leaf, leaf2, pear, bark, bird, birdl, beak = "#F4EAD5", "#6FA35A", "#4E8A45", "#E9C46A", "#8A5A3B", "#A0673F", "#D9A26B", "#F2B84B"
+    p = [HEAD]
+    p.append(text(2250, 900, "PARTRIDGE", 800, cream, 3700))
+    p.append(text(2250, 1620, "SPOTTED", 800, pear, 3300))
+    # trunk + branch
+    p.append(f'<path d="M2130 4380 L2170 3050 L2330 3050 L2370 4380 Z" fill="{bark}"/>')
+    p.append(f'<path d="M2300 3650 Q2700 3560 3150 3470" stroke="{bark}" stroke-width="110" fill="none" stroke-linecap="round"/>')
+    # canopy
+    for (cx, cy, r) in [(2250, 2500, 700), (1750, 2850, 520), (2750, 2850, 520), (2250, 3000, 560)]:
+        p.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{leaf}"/>')
+    for (cx, cy, r) in [(1900, 2350, 160), (2600, 2300, 140), (2250, 2900, 180), (1700, 2950, 120), (2800, 3000, 130)]:
+        p.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{leaf2}" opacity="0.6"/>')
+    # pears
+    for (cx, cy) in [(1850, 2600), (2350, 2250), (2650, 2700), (2100, 3150), (1550, 3050), (2900, 3150)]:
+        p.append(f'<path d="M{cx} {cy-120} q-15 -60 25 -90" stroke="{bark}" stroke-width="22" fill="none" stroke-linecap="round"/>')
+        p.append(f'<circle cx="{cx}" cy="{cy+60}" r="105" fill="{pear}"/><circle cx="{cx}" cy="{cy-40}" r="70" fill="{pear}"/>')
+    # partridge on the branch
+    bx, by = 3050, 3260
+    p.append(f'<path d="M{bx-300} {by-30} L{bx-520} {by-170} L{bx-480} {by+40} Z" fill="{bird}"/>')  # tail
+    p.append(f'<ellipse cx="{bx}" cy="{by}" rx="330" ry="240" fill="{bird}"/>')
+    p.append(f'<ellipse cx="{bx+120}" cy="{by+60}" rx="190" ry="150" fill="{birdl}"/>')
+    p.append(f'<path d="M{bx-180} {by-60} Q{bx-20} {by+120} {bx+120} {by-40}" stroke="{birdl}" stroke-width="40" fill="none" stroke-linecap="round"/>')  # wing line
+    p.append(f'<circle cx="{bx+290}" cy="{by-210}" r="150" fill="{bird}"/>')
+    p.append(f'<path d="M{bx+425} {by-235} L{bx+540} {by-195} L{bx+425} {by-160} Z" fill="{beak}"/>')
+    p.append(f'<circle cx="{bx+330}" cy="{by-245}" r="32" fill="#1A1A1A"/><circle cx="{bx+340}" cy="{by-255}" r="10" fill="#FFFFFF"/>')
+    p.append(f'<path d="M{bx-40} {by+230} l-30 90 M{bx+80} {by+230} l30 90" stroke="{beak}" stroke-width="36" stroke-linecap="round"/>')
+    p.append(text(2250, 4900, "PEAR TREE CONFIRMED", 360, cream, 3400))
+    p.append("</svg>")
+    return "".join(p)
+
+def crescent(x1, y1, r1, x2, y2, r2, fill):
+    """Outer circle (x1,y1,r1) minus inner circle (x2,y2,r2), as one path (no masks)."""
+    d = math.hypot(x2 - x1, y2 - y1)
+    a = (r1**2 - r2**2 + d**2) / (2 * d)
+    hgt = math.sqrt(r1**2 - a**2)
+    mx, my = x1 + a * (x2 - x1) / d, y1 + a * (y2 - y1) / d
+    ox, oy = -(y2 - y1) / d * hgt, (x2 - x1) / d * hgt
+    p1, p2 = (mx + ox, my + oy), (mx - ox, my - oy)
+    return (f'<path d="M{p1[0]:.0f} {p1[1]:.0f} A{r1} {r1} 0 1 1 {p2[0]:.0f} {p2[1]:.0f} '
+            f'A{r2} {r2} 0 0 0 {p1[0]:.0f} {p1[1]:.0f} Z" fill="{fill}"/>')
+
+# ---------- 5. SILENT NIGHT, READING NIGHT (book lovers) ----------
+def reading_night():
+    cream, yellow, ice, page, cover = "#F4EAD5", "#F2C14E", "#A9D6E5", "#F7F1E3", "#2E5E7E"
+    p = [HEAD]
+    p.append(text(2250, 1020, "SILENT NIGHT", 640, cream, 3700, font=SERIF))
+    # moon + stars
+    p.append(crescent(2250, 2050, 420, 2430, 1930, 370, yellow))
+    def sparkle(cx, cy, s, col):
+        return f'<path d="M{cx} {cy-s} Q{cx+s*0.18} {cy-s*0.18} {cx+s} {cy} Q{cx+s*0.18} {cy+s*0.18} {cx} {cy+s} Q{cx-s*0.18} {cy+s*0.18} {cx-s} {cy} Q{cx-s*0.18} {cy-s*0.18} {cx} {cy-s} Z" fill="{col}"/>'
+    for (cx, cy, s) in [(1450, 1800, 160), (3050, 1700, 120), (3350, 2350, 190), (1150, 2500, 110), (2800, 2650, 90)]:
+        p.append(sparkle(cx, cy, s, ice))
+    # open book
+    p.append(f'<path d="M700 3500 Q1450 3150 2250 3500 L2250 4250 Q1450 3900 700 4250 Z" fill="{cover}"/>')
+    p.append(f'<path d="M3800 3500 Q3050 3150 2250 3500 L2250 4250 Q3050 3900 3800 4250 Z" fill="{cover}"/>')
+    p.append(f'<path d="M800 3420 Q1500 3080 2250 3420 L2250 4150 Q1500 3810 800 4150 Z" fill="{page}"/>')
+    p.append(f'<path d="M3700 3420 Q3000 3080 2250 3420 L2250 4150 Q3000 3810 3700 4150 Z" fill="{page}"/>')
+    for i in range(5):
+        dy = 3530 + i * 120
+        p.append(f'<path d="M1000 {dy} Q1600 {dy-260} 2120 {dy}" stroke="{ice}" stroke-width="34" fill="none" stroke-linecap="round" opacity="0.9"/>')
+        p.append(f'<path d="M3500 {dy} Q2900 {dy-260} 2380 {dy}" stroke="{ice}" stroke-width="34" fill="none" stroke-linecap="round" opacity="0.9"/>')
+    p.append(f'<rect x="2225" y="3400" width="50" height="860" rx="20" fill="{cover}"/>')
+    p.append(text(2250, 4950, "READING NIGHT", 640, yellow, 3700, font=SERIF))
+    p.append("</svg>")
+    return "".join(p)
+
 DESIGNS = {"01-jingle-bams-mahjong": jingle_bams, "02-kitchen-closed-pickleball": kitchen_closed,
-           "03-home-for-the-holidays-introvert": home_holidays}
+           "03-home-for-the-holidays-introvert": home_holidays,
+           "04-partridge-spotted-birding": partridge, "05-silent-night-reading-night-books": reading_night}
 for slug, fn in DESIGNS.items():
     d = OUT / slug; d.mkdir(parents=True, exist_ok=True)
     svg = fn(); (d / "design.svg").write_text(svg)
