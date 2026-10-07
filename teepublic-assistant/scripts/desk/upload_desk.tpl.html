@@ -1,0 +1,121 @@
+<title>TeePublic Upload Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of five upload cards; each card mirrors the order of TeePublic's upload form (file, title, main tag, tags, description, products). */
+:root{--bg:#EEF1F0;--card:#FFFFFF;--ink:#161B1E;--mute:#5B6670;--line:#D5DBDA;--accent:#1B6B5A;--accent-ink:#FFFFFF;--hi:#E6A92B;--stage:#14171A;--ok:#1B6B5A;--field:#F5F7F6;
+--display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;--body:"Barlow",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1214;--card:#181D20;--ink:#E8EDEC;--mute:#98A4AB;--line:#2C3438;--accent:#4FB79F;--accent-ink:#0B1412;--hi:#E6A92B;--stage:#0A0C0E;--ok:#4FB79F;--field:#101417;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1214;--card:#181D20;--ink:#E8EDEC;--mute:#98A4AB;--line:#2C3438;--accent:#4FB79F;--accent-ink:#0B1412;--hi:#E6A92B;--stage:#0A0C0E;--ok:#4FB79F;--field:#101417;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1;margin:0 0 10px;text-wrap:balance;letter-spacing:.01em}
+.lede{color:var(--mute);max-width:62ch;margin:0 0 22px}
+.rules{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 14px;border:1px solid var(--line);background:var(--card);margin:0 0 26px;font-size:.92rem}
+.rules b{font-family:var(--display);font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
+.rules a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);margin:0 0 22px;display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr)}
+.card.done{opacity:.62}
+.stage{background:var(--stage);padding:18px;display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.stage img{width:100%;height:auto;display:block;aspect-ratio:4500/5500}
+.stage .file{font-family:var(--mono);font-size:.78rem;color:#98A4AB;word-break:break-all}
+.btn{font:600 .95rem var(--body);border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:10px 14px;cursor:pointer;min-height:44px}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible,.chip:focus-visible,summary:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.body{padding:18px 18px 20px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.head h2{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1.05;margin:0;min-width:0}
+.head label{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--mute);cursor:pointer;white-space:nowrap}
+.head input{width:20px;height:20px;accent-color:var(--accent)}
+.field{display:grid;gap:6px}
+.lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.lab .n{font-family:var(--mono);letter-spacing:0;text-transform:none;font-weight:400}
+.val{background:var(--field);border:1px solid var(--line);padding:9px 11px;font-family:var(--mono);font-size:.9rem;overflow-wrap:anywhere;user-select:all}
+.row{display:flex;gap:8px;align-items:stretch}
+.row .val{flex:1;min-width:0}
+.row .btn{flex:none;padding-inline:12px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 .82rem var(--mono);background:var(--field);border:1px solid var(--line);color:var(--ink);padding:4px 8px;cursor:pointer}
+.chip.copied,.btn.copied{background:var(--hi);color:#161B1E;border-color:var(--hi)}
+.meta{font-size:.9rem;color:var(--mute);margin:0}
+.meta b{color:var(--ink);font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;font-size:.92rem;max-width:calc(100% - 32px);z-index:5}
+@media (max-width:720px){.card{grid-template-columns:1fr}.stage{flex-direction:row;flex-wrap:wrap;align-items:flex-start}.stage img{width:min(100%,260px);margin-inline:auto}.stage>div{flex:1 1 100%}}
+@media (prefers-reduced-motion:no-preference){.card{transition:opacity .2s}}
+</style>
+
+<div class="wrap">
+  <h1>TeePublic Upload Desk</h1>
+  <p class="lede" id="batchline"></p>
+  <div class="rules">
+    <span><b>Before you publish</b></span>
+    <span>Search each title on <a href="https://www.teepublic.com" target="_blank" rel="noopener">teepublic.com</a>. If an almost identical design exists, change the wording.</span>
+    <span>Pick dark shirt colors only. Add your own touch to each file.</span>
+  </div>
+  <div id="cards"></div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script type="application/json" id="batch-data">__BATCH_JSON__</script>
+
+<script>
+const BATCH = __BATCH_META__;
+const CARDS = __DATA__;
+const $ = (s, el=document) => el.querySelector(s);
+const toastEl = $('#toast'); let tt;
+function toast(msg){ toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(tt); tt = setTimeout(()=>toastEl.hidden = true, 2200); }
+async function copy(text, btn){
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy') }catch(_){} ta.remove();
+    if(!ok){ toast('Copy blocked. Select the text and copy it by hand.'); return; }
+  }
+  if(btn){ const t = btn.textContent; btn.classList.add('copied'); if(btn.tagName==='BUTTON') btn.textContent='Copied'; setTimeout(()=>{btn.classList.remove('copied'); if(btn.tagName==='BUTTON') btn.textContent=t;}, 1200); }
+  toast('Copied');
+}
+function b64ToBlob(b64){ const bin = atob(b64), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new Blob([u],{type:'image/png'}); }
+let dl = null; const dlReady = (async()=>{ try{ dl = await claude.use('downloads'); }catch(e){ dl = null; } })();
+async function savePng(c, btn){
+  await dlReady;
+  if(!dl){ toast('Saving is not available here. Long-press the image to save it.'); return; }
+  try{ await dl.save({filename: c.slug + '.png', data: b64ToBlob(c.png)}); toast('Saved ' + c.slug + '.png'); }
+  catch(e){ if(e && e.code==='declined') return; toast('Could not save the file. Long-press the image instead.'); }
+}
+const store = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} } };
+function field(label, value, note){
+  const wrap = document.createElement('div'); wrap.className='field';
+  wrap.innerHTML = `<div class="lab"><span></span><span class="n"></span></div><div class="row"><div class="val"></div><button class="btn ghost" type="button">Copy</button></div>`;
+  $('.lab span', wrap).textContent = label; $('.n', wrap).textContent = note || '';
+  $('.val', wrap).textContent = value; const b = $('button', wrap); b.addEventListener('click', ()=>copy(value, b));
+  return wrap;
+}
+$('#batchline').textContent = 'Batch ' + BATCH.date + ': ' + CARDS.length + ' designs. Each card follows the order of TeePublic\'s upload form: save the file, then copy each field and paste it in.';
+const root = $('#cards');
+CARDS.forEach((c, i) => {
+  const el = document.createElement('section'); el.className = 'card';
+  const key = 'done:' + c.slug;
+  el.innerHTML = `
+    <div class="stage"><img alt="" width="450" height="550"><div><button class="btn" type="button" style="width:100%">Save PNG (4500 × 5500)</button><p class="file" style="margin:10px 0 0"></p></div></div>
+    <div class="body">
+      <div class="head"><h2></h2><label><input type="checkbox"> Uploaded</label></div>
+      <div class="fields"></div>
+      <div class="field"><div class="lab"><span>Supporting tags</span><span class="n"></span></div><div class="tags"></div><div><button class="btn ghost allTags" type="button">Copy all tags, comma separated</button></div></div>
+      <p class="meta"></p>
+    </div>`;
+  const img = $('img', el); img.src = 'data:image/png;base64,' + c.png; img.alt = c.head + ' design preview on a dark background';
+  $('h2', el).textContent = c.head;
+  $('.file', el).textContent = c.slug + '.png, transparent';
+  $('.stage .btn', el).addEventListener('click', e => savePng(c, e.currentTarget));
+  const f = $('.fields', el);
+  f.append(field('Title', c.title, c.title.length + ' chars'), field('Main tag', c.main), field('Description', c.desc));
+  $('.tags', el).append(...c.tags.map(t => { const b = document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t; b.addEventListener('click', ()=>copy(t,b)); return b; }));
+  $('.lab .n', $('.tags', el).parentElement).textContent = c.tags.length + ' tags';
+  const all = $('.allTags', el); all.addEventListener('click', ()=>copy(c.tags.join(', '), all));
+  const m = $('.meta', el); m.innerHTML = '<b>Products:</b> <span></span><br><b>Colors:</b> <span></span>';
+  m.querySelectorAll('span')[0].textContent = c.prod; m.querySelectorAll('span')[1].textContent = c.colors;
+  const cb = $('input', el); cb.id = 'done-' + i; cb.checked = store.get(key) === '1'; el.classList.toggle('done', cb.checked);
+  cb.addEventListener('change', ()=>{ store.set(key, cb.checked ? '1' : '0'); el.classList.toggle('done', cb.checked); });
+  root.append(el);
+});
+</script>
