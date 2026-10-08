@@ -12,8 +12,22 @@ W, H = 4500, 5500
 FONT = TTFont("/usr/share/fonts/opentype/inter/Inter-Black.otf")
 SERIF = TTFont("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf")
 
+from fontTools.pens.boundsPen import BoundsPen
+from pathlib import Path as _P
+FONTS_DIR = _P(__file__).resolve().parents[2] / "fonts"
+_fc = {}
+def font(name):
+    """Load a bundled font by file stem, e.g. font('shrikhand-latin-400-normal')."""
+    if name not in _fc:
+        _fc[name] = TTFont(str(FONTS_DIR / f"{name}.woff"))
+    return _fc[name]
+
+_caps = {}
 def _m(font):
-    return font["head"].unitsPerEm, font.getBestCmap(), font.getGlyphSet(), font["hmtx"], getattr(font["OS/2"], "sCapHeight", 0) or 1400
+    gs = font.getGlyphSet(); cmap = font.getBestCmap()
+    if id(font) not in _caps:
+        bp = BoundsPen(gs); gs[cmap[ord("H")]].draw(bp); _caps[id(font)] = bp.bounds[3]
+    return font["head"].unitsPerEm, cmap, gs, font["hmtx"], _caps[id(font)]
 
 def line(cx, base, s, cap_h, width, fill, xscale=0.72, track=0, bold=16, font=FONT):
     """Straight text as outlines: x-squeezed heavy sans, shrunk uniformly to fit `width`."""
