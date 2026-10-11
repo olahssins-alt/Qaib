@@ -60,3 +60,16 @@ def pumpkin(cx, cy, s, col, dark, stem="#6B8F4E"):
 def heart(cx, cy, s, fill=None, stroke=None, sw=0):
     d = f"M{cx} {cy+90*s} C{cx-170*s} {cy-20*s} {cx-110*s} {cy-150*s} {cx} {cy-60*s} C{cx+110*s} {cy-150*s} {cx+170*s} {cy-20*s} {cx} {cy+90*s} Z"
     return p(d, fill or "none", stroke, sw)
+
+def neon_glow(img, radius=60, boost=1.6, core=0.55):
+    """Soft glow under bright tubes, background kept transparent."""
+    import numpy as np
+    from PIL import Image, ImageFilter
+    glow = img.copy().filter(ImageFilter.GaussianBlur(radius))
+    ga = np.asarray(glow.getchannel("A"), dtype=np.float32) * boost
+    glow.putalpha(Image.fromarray(np.clip(ga, 0, 255).astype(np.uint8)))
+    out = Image.new("RGBA", img.size, (0, 0, 0, 0)); out.alpha_composite(glow); out.alpha_composite(img)
+    arr = np.asarray(img).copy(); m = arr[..., 3] > 0
+    arr[..., :3][m] = (arr[..., :3][m] * (1 - core) + 255 * core).astype(np.uint8)
+    out.alpha_composite(Image.fromarray(arr).filter(ImageFilter.GaussianBlur(3)))
+    return out
