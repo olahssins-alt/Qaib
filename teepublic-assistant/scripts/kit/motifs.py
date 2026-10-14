@@ -80,3 +80,24 @@ def tile_line(s=1.0, col="#F2E9DA", sw=22):
     w, h = 600 * s, 800 * s
     return (f'<rect x="{-w/2:.0f}" y="{-h/2:.0f}" width="{w:.0f}" height="{h:.0f}" rx="{80*s:.0f}" fill="none" stroke="{col}" stroke-width="{sw}"/>'
             f'<path d="M{-w/2+20*s:.0f} {h/2+10*s:.0f} q0 {40*s:.0f} {60*s:.0f} {40*s:.0f} h{w-120*s:.0f} q{60*s:.0f} 0 {60*s:.0f} {-40*s:.0f}" stroke="{col}" stroke-width="{sw}" fill="none" stroke-linecap="round"/>')
+
+BALL, BALL_D = "#D8F23D", "#9DB81C"
+
+def ball(s=1.0, holes=True):
+    """Pickleball with a ring of holes and a highlight."""
+    o = [f'<circle cx="0" cy="0" r="{200*s:.0f}" fill="{BALL}"/>']
+    if holes:
+        for (x, y) in ((-95, -70), (20, -120), (110, -40), (-120, 50), (-10, 20), (90, 90), (-40, 130), (40, -40)):
+            o.append(f'<circle cx="{x*s:.0f}" cy="{y*s:.0f}" r="{24*s:.0f}" fill="{BALL_D}"/>')
+    o.append(f'<path d="M{-140*s:.0f} {-60*s:.0f} A{150*s:.0f} {150*s:.0f} 0 0 1 {-40*s:.0f} {-160*s:.0f}" stroke="#FFFFFF" stroke-width="{22*s:.0f}" fill="none" stroke-linecap="round" opacity="0.6"/>')
+    return "".join(o)
+
+def paddle(s=1.0, face="#2F6FB0", edge="#1B3F66", grip="#2A2A2A"):
+    """Pickleball paddle pointing up, handle at the bottom, centre of the face at 0,0."""
+    o = [f'<rect x="{-55*s:.0f}" y="{230*s:.0f}" width="{110*s:.0f}" height="{330*s:.0f}" rx="{40*s:.0f}" fill="{grip}"/>']
+    for k in range(5):
+        o.append(f'<path d="M{-55*s:.0f} {(270+k*60)*s:.0f} l{110*s:.0f} {30*s:.0f}" stroke="#555555" stroke-width="{12*s:.0f}"/>')
+    o.append(f'<rect x="{-70*s:.0f}" y="{540*s:.0f}" width="{140*s:.0f}" height="{40*s:.0f}" rx="{18*s:.0f}" fill="{edge}"/>')
+    o.append(f'<path d="M{-220*s:.0f} {-150*s:.0f} Q{-220*s:.0f} {-330*s:.0f} 0 {-330*s:.0f} Q{220*s:.0f} {-330*s:.0f} {220*s:.0f} {-150*s:.0f} L{220*s:.0f} {120*s:.0f} Q{220*s:.0f} {260*s:.0f} {80*s:.0f} {270*s:.0f} L{-80*s:.0f} {270*s:.0f} Q{-220*s:.0f} {260*s:.0f} {-220*s:.0f} {120*s:.0f} Z" fill="{face}" stroke="{edge}" stroke-width="{34*s:.0f}"/>')
+    o.append(f'<path d="M{-150*s:.0f} {-180*s:.0f} Q{-150*s:.0f} {-260*s:.0f} {-60*s:.0f} {-270*s:.0f}" stroke="#FFFFFF" stroke-width="{20*s:.0f}" fill="none" stroke-linecap="round" opacity="0.45"/>')
+    return "".join(o)
