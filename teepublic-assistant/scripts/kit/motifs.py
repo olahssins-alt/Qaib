@@ -101,3 +101,73 @@ def paddle(s=1.0, face="#2F6FB0", edge="#1B3F66", grip="#2A2A2A"):
     o.append(f'<path d="M{-220*s:.0f} {-150*s:.0f} Q{-220*s:.0f} {-330*s:.0f} 0 {-330*s:.0f} Q{220*s:.0f} {-330*s:.0f} {220*s:.0f} {-150*s:.0f} L{220*s:.0f} {120*s:.0f} Q{220*s:.0f} {260*s:.0f} {80*s:.0f} {270*s:.0f} L{-80*s:.0f} {270*s:.0f} Q{-220*s:.0f} {260*s:.0f} {-220*s:.0f} {120*s:.0f} Z" fill="{face}" stroke="{edge}" stroke-width="{34*s:.0f}"/>')
     o.append(f'<path d="M{-150*s:.0f} {-180*s:.0f} Q{-150*s:.0f} {-260*s:.0f} {-60*s:.0f} {-270*s:.0f}" stroke="#FFFFFF" stroke-width="{20*s:.0f}" fill="none" stroke-linecap="round" opacity="0.45"/>')
     return "".join(o)
+
+FRENCHIE_COATS = {  # base, muzzle/chest, ear inner, dark (nose, wrinkles)
+    "fawn": ("#D79A5B", "#F2D3A8", "#E9A9A0", "#3A2A22"),
+    "brindle": ("#4A3B33", "#EDE3D6", "#C98C86", "#1C1512"),
+    "cream": ("#F1E6D6", "#FFFFFF", "#F2B5AE", "#2B2522"),
+    "blue": ("#7D8796", "#D9DEE5", "#D9A3A3", "#2A2E35"),
+}
+
+def frenchie(coat="fawn", hat=None, s=1.0, wink=False, tongue=False):
+    """Front-facing French bulldog head: wide flat face, rounded bat ears, jowls. ~800*s wide, centred on 0,0."""
+    base, light, inner, dark = FRENCHIE_COATS[coat]
+    mask = {"fawn": "#5C3E2C"}.get(coat)
+    o = []
+    for sg in (-1, 1):  # big rounded bat ears
+        o.append(f'<path d="M{sg*90*s:.0f} {-210*s:.0f} C{sg*80*s:.0f} {-430*s:.0f} {sg*170*s:.0f} {-590*s:.0f} {sg*290*s:.0f} {-600*s:.0f} C{sg*420*s:.0f} {-610*s:.0f} {sg*440*s:.0f} {-420*s:.0f} {sg*380*s:.0f} {-150*s:.0f} Z" fill="{base}"/>')
+        o.append(f'<path d="M{sg*150*s:.0f} {-230*s:.0f} C{sg*150*s:.0f} {-400*s:.0f} {sg*210*s:.0f} {-520*s:.0f} {sg*290*s:.0f} {-525*s:.0f} C{sg*370*s:.0f} {-530*s:.0f} {sg*375*s:.0f} {-390*s:.0f} {sg*335*s:.0f} {-200*s:.0f} Z" fill="{inner}"/>')
+    o.append(f'<ellipse cx="0" cy="0" rx="{390*s:.0f}" ry="{300*s:.0f}" fill="{base}"/>')
+    if coat == "cream":
+        o.append(f'<ellipse cx="{150*s:.0f}" cy="{-60*s:.0f}" rx="{120*s:.0f}" ry="{110*s:.0f}" fill="#3A2F2A"/>')
+    if coat == "brindle":
+        o.append(f'<path d="M{-50*s:.0f} {-300*s:.0f} Q0 {-90*s:.0f} {50*s:.0f} {-300*s:.0f} Z" fill="{light}"/>')
+    # muzzle: dark mask behind two jowl lobes
+    if mask:
+        o.append(f'<ellipse cx="0" cy="{90*s:.0f}" rx="{270*s:.0f}" ry="{170*s:.0f}" fill="{mask}"/>')
+    for sg in (-1, 1):
+        o.append(f'<ellipse cx="{sg*115*s:.0f}" cy="{135*s:.0f}" rx="{140*s:.0f}" ry="{110*s:.0f}" fill="{light if not mask else "#7A5440"}"/>')
+    # wrinkles above the nose
+    for k in (0, 1):
+        o.append(f'<path d="M{-110*s:.0f} {(-100+k*38)*s:.0f} Q0 {(-150+k*38)*s:.0f} {110*s:.0f} {(-100+k*38)*s:.0f}" stroke="{dark}" stroke-width="{13*s:.0f}" fill="none" stroke-linecap="round" opacity="0.4"/>')
+    for sg in (-1, 1):
+        ex, ey = sg * 175 * s, -20 * s
+        if wink and sg == 1:
+            o.append(f'<path d="M{ex-60*s:.0f} {ey:.0f} q{60*s:.0f} {45*s:.0f} {120*s:.0f} 0" stroke="{dark}" stroke-width="{20*s:.0f}" fill="none" stroke-linecap="round"/>')
+        else:
+            o.append(f'<circle cx="{ex:.0f}" cy="{ey:.0f}" r="{70*s:.0f}" fill="#1A1412"/><circle cx="{ex-22*s:.0f}" cy="{ey-24*s:.0f}" r="{23*s:.0f}" fill="#FFFFFF"/><circle cx="{ex+22*s:.0f}" cy="{ey+22*s:.0f}" r="{9*s:.0f}" fill="#FFFFFF"/>')
+    o.append(f'<path d="M{-95*s:.0f} {45*s:.0f} Q0 {5*s:.0f} {95*s:.0f} {45*s:.0f} Q{100*s:.0f} {100*s:.0f} 0 {115*s:.0f} Q{-100*s:.0f} {100*s:.0f} {-95*s:.0f} {45*s:.0f} Z" fill="#1A1412"/>')
+    o.append(f'<ellipse cx="{-30*s:.0f}" cy="{45*s:.0f}" rx="{24*s:.0f}" ry="{11*s:.0f}" fill="#FFFFFF" opacity="0.45"/>')
+    o.append(f'<path d="M0 {115*s:.0f} v{40*s:.0f}" stroke="#1A1412" stroke-width="{14*s:.0f}" stroke-linecap="round"/>')
+    if tongue:
+        o.append(f'<path d="M{-45*s:.0f} {200*s:.0f} Q0 {320*s:.0f} {45*s:.0f} {200*s:.0f} Z" fill="#E8687A"/>')
+    o.append(f'<path d="M{-140*s:.0f} {185*s:.0f} Q{-70*s:.0f} {235*s:.0f} 0 {155*s:.0f} Q{70*s:.0f} {235*s:.0f} {140*s:.0f} {185*s:.0f}" stroke="#1A1412" stroke-width="{14*s:.0f}" fill="none" stroke-linecap="round"/>')
+    if hat: o.append(HATS[hat](s))
+    return "".join(o)
+
+def _santa(s):
+    return (f'<path d="M{-300*s:.0f} {-190*s:.0f} C{-260*s:.0f} {-560*s:.0f} {100*s:.0f} {-700*s:.0f} {430*s:.0f} {-500*s:.0f} C{280*s:.0f} {-430*s:.0f} {300*s:.0f} {-300*s:.0f} {300*s:.0f} {-190*s:.0f} Z" fill="#D7263D"/>'
+            f'<rect x="{-340*s:.0f}" y="{-270*s:.0f}" width="{680*s:.0f}" height="{130*s:.0f}" rx="{65*s:.0f}" fill="#FFFFFF"/><circle cx="{430*s:.0f}" cy="{-500*s:.0f}" r="{80*s:.0f}" fill="#FFFFFF"/>')
+def _elf(s):
+    return (f'<path d="M{-290*s:.0f} {-200*s:.0f} L{120*s:.0f} {-760*s:.0f} L{290*s:.0f} {-200*s:.0f} Z" fill="#1F8A4C"/>'
+            f'<path d="M{-310*s:.0f} {-200*s:.0f} l{62*s:.0f} {-70*s:.0f} l{62*s:.0f} {70*s:.0f} l{62*s:.0f} {-70*s:.0f} l{62*s:.0f} {70*s:.0f} l{62*s:.0f} {-70*s:.0f} l{62*s:.0f} {70*s:.0f} l{62*s:.0f} {-70*s:.0f} l{62*s:.0f} {70*s:.0f} l{62*s:.0f} {-70*s:.0f} l{42*s:.0f} {70*s:.0f} v{60*s:.0f} h{-620*s:.0f} Z" fill="#D7263D"/>'
+            f'<circle cx="{120*s:.0f}" cy="{-770*s:.0f}" r="{55*s:.0f}" fill="#F2B134"/>')
+def _antlers(s):
+    o = []
+    for sg in (-1, 1):
+        o.append(f'<path d="M{sg*150*s:.0f} {-240*s:.0f} C{sg*170*s:.0f} {-420*s:.0f} {sg*260*s:.0f} {-560*s:.0f} {sg*380*s:.0f} {-640*s:.0f} M{sg*220*s:.0f} {-430*s:.0f} L{sg*120*s:.0f} {-560*s:.0f} M{sg*300*s:.0f} {-540*s:.0f} L{sg*260*s:.0f} {-680*s:.0f} M{sg*260*s:.0f} {-470*s:.0f} L{sg*400*s:.0f} {-480*s:.0f}" stroke="#8A5A3B" stroke-width="{48*s:.0f}" fill="none" stroke-linecap="round"/>')
+    o.append(f'<ellipse cx="0" cy="{40*s:.0f}" rx="{70*s:.0f}" ry="{55*s:.0f}" fill="#E8303F"/><circle cx="{-20*s:.0f}" cy="{20*s:.0f}" r="{18*s:.0f}" fill="#FFFFFF" opacity="0.7"/>')
+    return "".join(o)
+def _beanie(s):
+    o = [f'<path d="M{-330*s:.0f} {-170*s:.0f} C{-330*s:.0f} {-560*s:.0f} {330*s:.0f} {-560*s:.0f} {330*s:.0f} {-170*s:.0f} Z" fill="#2F6FB0"/>']
+    for k in range(-4, 5):
+        o.append(f'<path d="M{k*70*s:.0f} {-180*s:.0f} l0 {-250*s+abs(k)*25*s:.0f}" stroke="#1B4F86" stroke-width="{18*s:.0f}"/>')
+    o.append(f'<rect x="{-350*s:.0f}" y="{-240*s:.0f}" width="{700*s:.0f}" height="{120*s:.0f}" rx="{40*s:.0f}" fill="#F4ECDD"/><circle cx="0" cy="{-480*s:.0f}" r="{90*s:.0f}" fill="#F4ECDD"/>')
+    return "".join(o)
+def _bow(s):
+    o = []
+    for sg in (-1, 1):
+        o.append(f'<path d="M0 {-300*s:.0f} C{sg*80*s:.0f} {-420*s:.0f} {sg*260*s:.0f} {-430*s:.0f} {sg*250*s:.0f} {-320*s:.0f} C{sg*240*s:.0f} {-220*s:.0f} {sg*80*s:.0f} {-230*s:.0f} 0 {-300*s:.0f} Z" fill="#F28CB1"/>')
+    o.append(f'<circle cx="0" cy="{-300*s:.0f}" r="{50*s:.0f}" fill="#E06C97"/>')
+    return "".join(o)
+HATS = {"santa": _santa, "elf": _elf, "antlers": _antlers, "beanie": _beanie, "bow": _bow}
