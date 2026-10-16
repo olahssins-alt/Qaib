@@ -171,3 +171,19 @@ def _bow(s):
     o.append(f'<circle cx="0" cy="{-300*s:.0f}" r="{50*s:.0f}" fill="#E06C97"/>')
     return "".join(o)
 HATS = {"santa": _santa, "elf": _elf, "antlers": _antlers, "beanie": _beanie, "bow": _bow}
+
+_MAPLE = [(0, -100), (12, -62), (38, -76), (30, -38), (74, -56), (62, -24), (96, -16), (56, 10), (64, 32), (22, 26), (8, 58), (0, 50)]
+def maple(s=1.0, col="#C8553D", vein="#8E3A26"):
+    """Stylised maple leaf, about 200*s wide, centred on 0,0."""
+    half = _MAPLE + [(-x, y) for x, y in reversed(_MAPLE[1:-1])]
+    pts = " ".join(f"{x*s:.0f},{y*s:.0f}" for x, y in half)
+    return (f'<polygon points="{pts}" fill="{col}" stroke="{col}" stroke-width="{6*s:.0f}" stroke-linejoin="round"/>'
+            f'<path d="M0 {50*s:.0f} L0 {110*s:.0f} M0 {40*s:.0f} L0 {-70*s:.0f} M0 {0:.0f} L{50*s:.0f} {-30*s:.0f} M0 0 L{-50*s:.0f} {-30*s:.0f}" stroke="{vein}" stroke-width="{7*s:.0f}" stroke-linecap="round"/>')
+
+def book_side(w, h, col, band="#F2E6CF", s=1.0):
+    """A closed book lying flat, seen from the spine side; top-left at 0,0."""
+    r = 18 * s
+    return (f'<rect x="0" y="0" width="{w:.0f}" height="{h:.0f}" rx="{r:.0f}" fill="{col}"/>'
+            f'<rect x="{w*0.07:.0f}" y="0" width="{14*s:.0f}" height="{h:.0f}" fill="{band}" opacity="0.8"/>'
+            f'<rect x="{w*0.93-14*s:.0f}" y="0" width="{14*s:.0f}" height="{h:.0f}" fill="{band}" opacity="0.8"/>'
+            f'<rect x="0" y="{h-14*s:.0f}" width="{w:.0f}" height="{14*s:.0f}" rx="{7*s:.0f}" fill="#000000" opacity="0.15"/>')
