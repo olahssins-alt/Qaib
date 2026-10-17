@@ -187,3 +187,28 @@ def book_side(w, h, col, band="#F2E6CF", s=1.0):
             f'<rect x="{w*0.07:.0f}" y="0" width="{14*s:.0f}" height="{h:.0f}" fill="{band}" opacity="0.8"/>'
             f'<rect x="{w*0.93-14*s:.0f}" y="0" width="{14*s:.0f}" height="{h:.0f}" fill="{band}" opacity="0.8"/>'
             f'<rect x="0" y="{h-14*s:.0f}" width="{w:.0f}" height="{14*s:.0f}" rx="{7*s:.0f}" fill="#000000" opacity="0.15"/>')
+
+def apple(s=1.0, col="#D7263D"):
+    return (f'<path d="M0 {-120*s:.0f} C{-60*s:.0f} {-190*s:.0f} {-240*s:.0f} {-170*s:.0f} {-240*s:.0f} {10*s:.0f} C{-240*s:.0f} {170*s:.0f} {-110*s:.0f} {250*s:.0f} 0 {200*s:.0f} C{110*s:.0f} {250*s:.0f} {240*s:.0f} {170*s:.0f} {240*s:.0f} {10*s:.0f} C{240*s:.0f} {-170*s:.0f} {60*s:.0f} {-190*s:.0f} 0 {-120*s:.0f} Z" fill="{col}"/>'
+            f'<path d="M0 {-120*s:.0f} q{10*s:.0f} {-80*s:.0f} {40*s:.0f} {-110*s:.0f}" stroke="#6B4A2E" stroke-width="{24*s:.0f}" fill="none" stroke-linecap="round"/>'
+            f'<path d="M{20*s:.0f} {-170*s:.0f} q{100*s:.0f} {-80*s:.0f} {170*s:.0f} {-20*s:.0f} q{-90*s:.0f} {60*s:.0f} {-170*s:.0f} {20*s:.0f} Z" fill="#3F9A5C"/>'
+            f'<ellipse cx="{-120*s:.0f}" cy="{-40*s:.0f}" rx="{35*s:.0f}" ry="{60*s:.0f}" fill="#FFFFFF" opacity="0.35"/>')
+
+def pencil(s=1.0):
+    """Horizontal pencil, tip at the right, centred."""
+    return (f'<rect x="{-500*s:.0f}" y="{-60*s:.0f}" width="{120*s:.0f}" height="{120*s:.0f}" rx="{30*s:.0f}" fill="#F28CB1"/>'
+            f'<rect x="{-400*s:.0f}" y="{-62*s:.0f}" width="{70*s:.0f}" height="{124*s:.0f}" fill="#B8BEC4"/>'
+            f'<rect x="{-330*s:.0f}" y="{-60*s:.0f}" width="{630*s:.0f}" height="{120*s:.0f}" fill="#F2B134"/>'
+            f'<rect x="{-330*s:.0f}" y="{-20*s:.0f}" width="{630*s:.0f}" height="{40*s:.0f}" fill="#E39B1F"/>'
+            f'<polygon points="{300*s:.0f},{-60*s:.0f} {460*s:.0f},0 {300*s:.0f},{60*s:.0f}" fill="#F2D3A8"/>'
+            f'<polygon points="{410*s:.0f},{-19*s:.0f} {460*s:.0f},0 {410*s:.0f},{19*s:.0f}" fill="#2A2A2A"/>')
+
+def mug(s=1.0, col="#C95B4A"):
+    return (f'<path d="M{-200*s:.0f} {-180*s:.0f} h{400*s:.0f} v{260*s:.0f} a{120*s:.0f} {120*s:.0f} 0 0 1 {-120*s:.0f} {120*s:.0f} h{-160*s:.0f} a{120*s:.0f} {120*s:.0f} 0 0 1 {-120*s:.0f} {-120*s:.0f} Z" fill="{col}"/>'
+            f'<path d="M{200*s:.0f} {-120*s:.0f} a{90*s:.0f} {90*s:.0f} 0 0 1 0 {180*s:.0f}" stroke="{col}" stroke-width="{45*s:.0f}" fill="none"/>'
+            f'<path d="M{-80*s:.0f} {-230*s:.0f} q{-40*s:.0f} {-70*s:.0f} 0 {-140*s:.0f} M{60*s:.0f} {-230*s:.0f} q{-40*s:.0f} {-70*s:.0f} 0 {-140*s:.0f}" stroke="#F4EAD8" stroke-width="{24*s:.0f}" fill="none" stroke-linecap="round" opacity="0.8"/>')
+
+def candy_cane(s=1.0):
+    d = f"M{60*s:.0f} {320*s:.0f} L{60*s:.0f} {-120*s:.0f} A{120*s:.0f} {120*s:.0f} 0 0 0 {-180*s:.0f} {-120*s:.0f}"
+    return (f'<path d="{d}" stroke="#FFFFFF" stroke-width="{90*s:.0f}" fill="none" stroke-linecap="round"/>'
+            f'<path d="{d}" stroke="#D7263D" stroke-width="{90*s:.0f}" fill="none" stroke-dasharray="{45*s:.0f} {45*s:.0f}"/>')
